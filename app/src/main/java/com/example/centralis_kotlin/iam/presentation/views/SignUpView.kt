@@ -4,7 +4,6 @@ import androidx.compose.runtime.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.*
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -17,9 +16,10 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.*
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.ButtonDefaults
 import androidx.navigation.NavHostController
 
-
+/*
 @Composable
 fun TextFieldView(
     placeholder: String,
@@ -42,11 +42,14 @@ fun TextFieldView(
             modifier = Modifier.fillMaxWidth()
         )
     }
-}
+}*/
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpView(nav: NavHostController) {
+fun SignUpView(
+    nav: NavHostController,
+    onSignUpSuccess: () -> Unit = {}
+) {
     val textUserName = remember { mutableStateOf("") }
     val textPassword = remember { mutableStateOf("") }
     val textPassword1 = remember { mutableStateOf("") }
@@ -55,7 +58,7 @@ fun SignUpView(nav: NavHostController) {
             .fillMaxWidth()
             .fillMaxHeight()
             .background(
-                color = Color(0xFF160F23),
+                color = Color(0xFF302149),
             )
     ){
         // Contenido principal que ocupa el espacio disponible
@@ -240,7 +243,7 @@ fun SignUpView(nav: NavHostController) {
 
 
             OutlinedButton(
-                onClick = { nav.navigate("SignUpProfile") },
+                onClick = onSignUpSuccess,
                 border = BorderStroke(0.dp, Color.Transparent),
                 colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent),
                 contentPadding = PaddingValues(),

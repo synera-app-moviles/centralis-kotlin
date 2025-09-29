@@ -2,7 +2,14 @@ package com.example.centralis_kotlin.iam.presentation.views
 
 import androidx.compose.runtime.*
 import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.*
 import androidx.compose.foundation.text.*
 import androidx.compose.material.*
@@ -22,7 +29,10 @@ import androidx.navigation.NavHostController
 
 
 @Composable
-fun SignInView(nav: NavHostController) {
+fun SignInView(
+    nav: NavHostController,
+    onLoginSuccess: () -> Unit = {}
+) {
     val textUsername= remember { mutableStateOf("") }
     val textPassword = remember { mutableStateOf("") }
     Column(
@@ -30,7 +40,7 @@ fun SignInView(nav: NavHostController) {
             .fillMaxWidth()
             .fillMaxHeight()
             .background(
-                color = Color(0xFFFFFFFF),
+                color = Color(0xFF302149),
             )
     ){
         Column(
@@ -68,7 +78,7 @@ fun SignInView(nav: NavHostController) {
                         modifier = Modifier
                             .width(48.dp)
                             .height(48.dp)
-                            .padding(start = 24.dp,)
+                            .padding(start = 24.dp)
                     ){
                     }
                 }
@@ -177,7 +187,7 @@ fun SignInView(nav: NavHostController) {
                     }
                 }
                 OutlinedButton(
-                    onClick = { println("Pressed!") },
+                    onClick = onLoginSuccess,
                     border = BorderStroke(0.dp, Color.Transparent),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent),
                     contentPadding = PaddingValues(),

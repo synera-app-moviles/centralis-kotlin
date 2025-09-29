@@ -26,13 +26,16 @@ import com.bumptech.glide.integration.compose.GlideImage
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun ProfileView(nav: NavHostController) {
+fun ProfileView(
+    nav: NavHostController,
+    onLogout: () -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
             .background(
-                color = Color(0xFFFFFFFF),
+                color = Color(0xFF302149),
             )
     ){
         Column(
@@ -66,6 +69,7 @@ fun ProfileView(nav: NavHostController) {
                             )
                             .padding(vertical = 16.dp,)
                     ){
+                        /*
                         Column(
                             modifier = Modifier
                                 .padding(top = 12.dp,bottom = 12.dp,end = 24.dp,)
@@ -83,7 +87,7 @@ fun ProfileView(nav: NavHostController) {
                                 )
                             }
 
-                        }
+                        }*/
                         Text("Profile",
                             color = Color(0xFFFFFFFF),
                             fontSize = 26.sp,
@@ -129,6 +133,7 @@ fun ProfileView(nav: NavHostController) {
                                 Column(
                                     modifier = Modifier
                                         .padding(bottom = 1.dp,)
+                                        .align(Alignment.CenterHorizontally)
                                 ){
                                     Text("teruko.asakura@centralis.com",
                                         color = Color(0xFFA88ECC),
@@ -139,6 +144,7 @@ fun ProfileView(nav: NavHostController) {
                                     modifier = Modifier
                                         .padding(horizontal = 4.dp,)
                                         .padding(bottom = 1.dp,)
+                                        .align(Alignment.CenterHorizontally)
                                 ){
                                     Text("Ing. Software",
                                         color = Color(0xFFA88ECC),
@@ -183,7 +189,7 @@ fun ProfileView(nav: NavHostController) {
                             }
                         }
                         OutlinedButton(
-                            onClick = { println("Pressed!") },
+                            onClick = onLogout,
                             border = BorderStroke(0.dp, Color.Transparent),
                             colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent),
                             contentPadding = PaddingValues(),
@@ -203,7 +209,7 @@ fun ProfileView(nav: NavHostController) {
                             ){
                                 Column(
                                 ){
-                                    Text("Log out",
+                                    Text("Sign out",
                                         color = Color(0xFFFFFFFF),
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,

@@ -19,9 +19,36 @@ import androidx.compose.ui.text.style.*
 import androidx.compose.ui.layout.*
 import androidx.navigation.NavHostController
 
+@Composable
+fun TextFieldView(
+    placeholder: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    textStyle: TextStyle,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier = modifier) {
+        if (value.isEmpty()) {
+            Text(
+                text = placeholder,
+                style = textStyle.copy(color = textStyle.color.copy(alpha = 0.6f))
+            )
+        }
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            textStyle = textStyle,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
 
 @Composable
-fun SignUpProfile(nav: NavHostController) {
+fun SignUpProfile(
+    nav: NavHostController,
+    onSaveProfile: () -> Unit = {}
+) {
     val textFirstName = remember { mutableStateOf("") }
     val textLastName = remember { mutableStateOf("") }
     val textEmail= remember { mutableStateOf("") }
@@ -32,7 +59,7 @@ fun SignUpProfile(nav: NavHostController) {
             .fillMaxWidth()
             .fillMaxHeight()
             .background(
-                color = Color(0xFFFFFFFF),
+                color = Color(0xFF302149),
             )
     ){
         Column(
@@ -305,7 +332,7 @@ fun SignUpProfile(nav: NavHostController) {
                         }
                     }
                     OutlinedButton(
-                        onClick = { nav.navigate("ProfileView") },
+                        onClick = onSaveProfile,
                         border = BorderStroke(0.dp, Color.Transparent),
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent),
                         contentPadding = PaddingValues(),

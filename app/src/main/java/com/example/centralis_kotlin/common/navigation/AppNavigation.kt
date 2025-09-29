@@ -18,9 +18,11 @@ fun AppNavigation(){
     NavHost(navController = recordarPantalla, startDestination = "SignInView"){
 
 
-        composable(route="SignUpView"){ SignUpView(recordarPantalla) }
-        composable (route="SignInView"){ SignInView(recordarPantalla) }
+        composable ("SignUpView"){ SignUpView(recordarPantalla) }
+        composable ("SignInView"){ SignInView(recordarPantalla) }
         composable ("SignUpProfile") {  SignUpProfile(recordarPantalla)  }
+
+
         composable ("ProfileView") { ProfileView(recordarPantalla)}
     }
 }
