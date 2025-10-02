@@ -1,4 +1,4 @@
-package com.example.centralis_kotlin.ui.notification
+package com.example.centralis_kotlin.notification.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,6 +17,51 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.centralis_kotlin.R
+import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+
+// Modelo de UI para la notificación
+data class NotificationUiModel(
+    val id: String,
+    val title: String,
+    val message: String,
+    val date: String, // Usar String para compatibilidad con minSdk 24
+    val type: NotificationType
+)
+
+enum class NotificationType {
+    ANNOUNCEMENT, EVENT, CHAT
+}
+
+class NotificationViewModel : ViewModel() {
+    private val _notifications = MutableStateFlow(
+        listOf(
+            NotificationUiModel(
+                id = "1",
+                title = "Remote Work Policy Update",
+                message = "",
+                date = "May 20, 2024",
+                type = NotificationType.ANNOUNCEMENT
+            ),
+            NotificationUiModel(
+                id = "2",
+                title = "New Employee Wellness",
+                message = "",
+                date = "May 15, 2024",
+                type = NotificationType.EVENT
+            ),
+            NotificationUiModel(
+                id = "3",
+                title = "Announcement of the Next",
+                message = "",
+                date = "May 10, 2024",
+                type = NotificationType.ANNOUNCEMENT
+            )
+        )
+    )
+    val notifications: StateFlow<List<NotificationUiModel>> = _notifications
+}
 
 @Composable
 fun NotificationScreen(viewModel: NotificationViewModel) {
@@ -52,11 +97,11 @@ fun NotificationItem(notification: NotificationUiModel) {
             .clickable { /* Acción al hacer click */ },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Asegúrate de tener estos íconos en res/drawable
         val iconRes = when (notification.type) {
-            NotificationType.ANNOUNCEMENT -> R.drawable.ic_announcement // Debes agregar este recurso
-            NotificationType.EVENT -> R.drawable.ic_event // Debes agregar este recurso
-            NotificationType.CHAT -> R.drawable.ic_chat // Debes agregar este recurso
+            NotificationType.ANNOUNCEMENT -> R.drawable.ic_announcement
+            NotificationType.EVENT -> R.drawable.ic_event
+            NotificationType.CHAT -> R.drawable.ic_chat
+            else -> R.drawable.ic_announcement // fallback
         }
         Icon(
             painter = painterResource(id = iconRes),

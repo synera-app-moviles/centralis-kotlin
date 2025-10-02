@@ -1,23 +1,3 @@
-package com.example.centralis_kotlin.ui.notification
-
-import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-
-// Modelo de UI para la notificación
-data class NotificationUiModel(
-    val id: String,
-    val title: String,
-    val message: String,
-    val date: String, // Usar String para compatibilidad con minSdk 24
-    val type: NotificationType
-)
-
-enum class NotificationType {
-    ANNOUNCEMENT, EVENT, CHAT
-}
-
-class NotificationViewModel : ViewModel() {
     private val _notifications = MutableStateFlow(
         listOf(
             NotificationUiModel(
@@ -45,3 +25,4 @@ class NotificationViewModel : ViewModel() {
     )
     val notifications: StateFlow<List<NotificationUiModel>> = _notifications
 }
+
