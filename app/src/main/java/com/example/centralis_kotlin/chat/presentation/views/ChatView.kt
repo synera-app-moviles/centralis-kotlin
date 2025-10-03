@@ -1,6 +1,6 @@
 package com.example.centralis_kotlin.chat.presentation.views
 
-import androidx.compose.foundation.background
+/*import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -147,3 +147,4 @@ fun ChatView(
         }
     }
 }
+*/

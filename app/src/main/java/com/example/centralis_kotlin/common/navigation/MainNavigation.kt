@@ -13,7 +13,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.centralis_kotlin.common.components.BottomNavigationBar
 import com.example.centralis_kotlin.profile.presentation.views.ProfileView
 import com.example.centralis_kotlin.announcement.presentation.view.*
-import java.util.UUID
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -27,7 +26,6 @@ fun MainNavigation(onLogout: () -> Unit) {
                 currentRoute = currentRoute?.destination?.route ?: "",
                 onNavigate = { route ->
                     navController.navigate(route) {
-                        // Evita duplicados al volver a navegar
                         popUpTo(navController.graph.startDestinationId) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
@@ -41,7 +39,7 @@ fun MainNavigation(onLogout: () -> Unit) {
             startDestination = NavigationRoutes.PROFILE,
             modifier = Modifier.padding(paddingValues)
         ) {
-            //  Profile
+            // Profile
             composable(NavigationRoutes.PROFILE) {
                 ProfileView(
                     nav = navController,
@@ -49,7 +47,7 @@ fun MainNavigation(onLogout: () -> Unit) {
                 )
             }
 
-            //  Events
+            // Events
             composable(NavigationRoutes.EVENTS) {
                 // TODO: EventsView(navController)
             }
@@ -59,16 +57,17 @@ fun MainNavigation(onLogout: () -> Unit) {
                 // TODO: ChatView(navController)
             }
 
-            //  Announcements (lista principal)
+            // Announcements (lista principal)
+            // onSelect ahora recibe el ID (String)
             composable(route = NavigationRoutes.ANNOUNCEMENTS) {
                 AnnouncementListScreen(
-                    onSelect = { announcement ->
-                        navController.navigate("${NavigationRoutes.ANNOUNCEMENT_DETAIL}/${announcement.id}")
+                    onSelect = { announcementId ->
+                        navController.navigate("${NavigationRoutes.ANNOUNCEMENT_DETAIL}/$announcementId")
                     }
                 )
             }
 
-            //  Announcements -> Detalle
+            // Announcements -> Detalle
             composable("${NavigationRoutes.ANNOUNCEMENT_DETAIL}/{id}") { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id")
                 if (id != null) {
@@ -79,7 +78,7 @@ fun MainNavigation(onLogout: () -> Unit) {
                 }
             }
 
-            //  Announcements -> Crear
+            // Announcements -> Crear
             composable(NavigationRoutes.ANNOUNCEMENT_CREATE) {
                 CreateAnnouncementScreen(
                     onCreated = { navController.popBackStack() }

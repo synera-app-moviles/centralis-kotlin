@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.centralis_kotlin.announcement.model.Comment
 import com.example.centralis_kotlin.announcement.presentation.view.components.CommentCard
 import com.example.centralis_kotlin.announcement.presentation.viewmodels.AnnouncementViewModel
 import java.text.SimpleDateFormat
@@ -32,9 +31,13 @@ fun AnnouncementDetailScreen(
 ) {
     val selected by vm.selectedAnnouncement.collectAsState()
     var commentText by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(true) }
 
+    //  Cargar detalle + comentarios desde backend al entrar
     LaunchedEffect(announcementId) {
+        isLoading = true
         vm.selectAnnouncement(announcementId)
+        isLoading = false
     }
 
     Scaffold(
@@ -43,7 +46,11 @@ fun AnnouncementDetailScreen(
                 title = { Text(text = "Announcement Detail", color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
                 }
             )
@@ -54,97 +61,101 @@ fun AnnouncementDetailScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            if (selected == null) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                }
-                return@Box
-            }
-
-            val announcement = selected!!
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = announcement.title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val createdAtText = try {
-                    DETAIL_DATE_FORMATTER.format(announcement.createdAt)
-                } catch (t: Throwable) {
-                    announcement.createdAt.toString()
-                }
-
-                Text(
-                    text = "Publicado: $createdAtText",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = announcement.description,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Text(
-                    text = "Comentarios",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                LazyColumn(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                ) {
-                    items(announcement.comments) { comment ->
-                        CommentCard(comment)
+            when {
+                isLoading || selected == null -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 }
+                else -> {
+                    val announcement = selected!!
 
-                Spacer(modifier = Modifier.height(8.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    ) {
+                        //  Título
+                        Text(
+                            text = announcement.title,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = commentText,
-                        onValueChange = { commentText = it },
-                        modifier = Modifier.weight(1f),
-                        placeholder = { Text("Escribe un comentario...") }
-                    )
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Button(onClick = {
-                        if (commentText.isNotBlank()) {
-                            val newComment = Comment(
-                                id = UUID.randomUUID().toString(),
-                                announcementId = announcement.id,
-                                employeeId = "employee_1", // aquí conectas con IAM
-                                content = commentText,
-                                createdAt = Date()
-                            )
-                            vm.addComment(announcement.id, newComment)
-                            commentText = ""
+                        //  Fecha
+                        val createdAtText = try {
+                            DETAIL_DATE_FORMATTER.format(announcement.createdAt)
+                        } catch (t: Throwable) {
+                            announcement.createdAt.toString()
                         }
-                    }) {
-                        Text("Enviar")
+
+                        Text(
+                            text = "Publicado: $createdAtText",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        //  Descripción
+                        Text(
+                            text = announcement.description,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        //  Comentarios
+                        Text(
+                            text = "Comentarios",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        LazyColumn(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        ) {
+                            items(announcement.comments) { comment ->
+                                CommentCard(comment)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        //  Input para nuevo comentario
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedTextField(
+                                value = commentText,
+                                onValueChange = { commentText = it },
+                                modifier = Modifier.weight(1f),
+                                placeholder = { Text("Escribe un comentario...") }
+                            )
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Button(onClick = {
+                                if (commentText.isNotBlank()) {
+                                    vm.addCommentRemote(
+                                        announcementId = announcement.id,
+                                        content = commentText,
+                                        employeeId = "123e4567-e89b-12d3-a456-426614174000" // luego lo traemos de IAM
+                                    )
+                                    commentText = ""
+                                }
+                            }) {
+                                Text("Enviar")
+                            }
+                        }
                     }
                 }
             }

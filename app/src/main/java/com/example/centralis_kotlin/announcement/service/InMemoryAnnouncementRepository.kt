@@ -13,23 +13,7 @@ class InMemoryAnnouncementRepository : IAnnouncementRepository {
 
     private val announcements = ConcurrentHashMap<String, Announcement>()
 
-    init {
-        // 🚀 Datos fake iniciales
-        val demo1 = Announcement(
-            title = "Nueva Política de Vacaciones",
-            description = "Se actualizó la política de vacaciones para 2025. Revisa el documento en intranet.",
-            priority = Priority.High,
-            createdBy = "manager_1"
-        )
-        val demo2 = Announcement(
-            title = "Bienvenida a nuevos empleados",
-            description = "Demos la bienvenida a los nuevos integrantes del equipo de tecnología.",
-            priority = Priority.Normal,
-            createdBy = "manager_2"
-        )
-        save(demo1)
-        save(demo2)
-    }
+
 
     // Métodos síncronos
     override fun getAll(): List<Announcement> {
@@ -56,6 +40,14 @@ class InMemoryAnnouncementRepository : IAnnouncementRepository {
 
     override suspend fun getAnnouncementById(id: String): Announcement? {
         return getById(id)
+    }
+
+    override suspend fun addComment(
+        announcementId: String,
+        content: String,
+        employeeId: String
+    ): Comment {
+        TODO("Not yet implemented")
     }
 
     // Métodos extra para comentarios y vistos (si los necesitas)
