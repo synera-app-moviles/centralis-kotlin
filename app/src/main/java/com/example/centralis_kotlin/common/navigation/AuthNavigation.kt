@@ -25,14 +25,17 @@ fun AuthNavigation(onLoginSuccess: () -> Unit) {
         composable("SignUpView") { 
             SignUpView(
                 nav = authNavController,
-                onSignUpSuccess = { authNavController.navigate("SignUpProfile") }
+                onSignUpSuccess = onLoginSuccess // Ir directamente a la aplicación después del registro
             )
         }
+        // SignUpProfile temporalmente deshabilitado - ir directamente a la app después del registro
+        /*
         composable("SignUpProfile") {
             SignUpProfile(
                 nav = authNavController,
                 onSaveProfile = onLoginSuccess
             )
         }
+        */
     }
 }

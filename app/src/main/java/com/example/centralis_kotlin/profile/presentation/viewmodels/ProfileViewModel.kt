@@ -10,10 +10,13 @@ import com.example.centralis_kotlin.profile.models.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import android.content.Context
+import com.example.centralis_kotlin.common.SharedPreferencesManager
 
-class ProfileViewModel : ViewModel() {
+class ProfileViewModel(context: Context) : ViewModel() {
     
     private val webService = RetrofitClient.profileWebService
+    private val sharedPrefsManager = SharedPreferencesManager(context)
     
     // Estados para perfil individual
     var currentProfile: ProfileResponse? by mutableStateOf(null)
@@ -37,16 +40,17 @@ class ProfileViewModel : ViewModel() {
         lastName: String,
         email: String,
         avatarUrl: String?,
-        position: String,
-        department: String
+        position: Position,
+        department: Department
     ) {
         viewModelScope.launch {
             isOperationLoading = true
             operationError = null
             
             try {
+                val token = "Bearer ${sharedPrefsManager.getToken()}"
                 val request = ProfileRequest(userId, firstName, lastName, email, avatarUrl, position, department)
-                val response = webService.createProfile(request)
+                val response = webService.createProfile(request, token)
                 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
@@ -79,7 +83,8 @@ class ProfileViewModel : ViewModel() {
             profileError = null
             
             try {
-                val response = webService.getProfileByUserId(userId)
+                val token = "Bearer ${sharedPrefsManager.getToken()}"
+                val response = webService.getProfileByUserId(userId, token)
                 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
@@ -111,7 +116,8 @@ class ProfileViewModel : ViewModel() {
             profilesListError = null
             
             try {
-                val response = webService.getAllProfiles()
+                val token = "Bearer ${sharedPrefsManager.getToken()}"
+                val response = webService.getAllProfiles(token)
                 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
@@ -138,16 +144,17 @@ class ProfileViewModel : ViewModel() {
         lastName: String,
         email: String,
         avatarUrl: String?,
-        position: String,
-        department: String
+        position: Position,
+        department: Department
     ) {
         viewModelScope.launch {
             isOperationLoading = true
             operationError = null
             
             try {
+                val token = "Bearer ${sharedPrefsManager.getToken()}"
                 val request = UpdateProfileRequest(firstName, lastName, email, avatarUrl, position, department)
-                val response = webService.updateProfile(profileId, request)
+                val response = webService.updateProfile(profileId, request, token)
                 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {

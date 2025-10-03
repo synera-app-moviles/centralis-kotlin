@@ -68,7 +68,7 @@ fun SignUpView(
     LaunchedEffect(iamViewModel.signUpResult) {
         iamViewModel.signUpResult?.let { result ->
             if (result.id.isNotEmpty()) {
-                onSignUpSuccess()
+                onSignUpSuccess() // Ir directamente a la aplicación después del registro exitoso
                 iamViewModel.clearResults()
             }
         }

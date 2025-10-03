@@ -22,6 +22,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.platform.LocalContext
 import com.example.centralis_kotlin.profile.presentation.viewmodels.ProfileViewModel
 import com.example.centralis_kotlin.common.SharedPreferencesManager
+import com.example.centralis_kotlin.profile.models.Position
+import com.example.centralis_kotlin.profile.models.Department
+import com.example.centralis_kotlin.common.components.CustomDropDownMenu
 
 @Composable
 fun TextFieldView(
@@ -55,7 +58,7 @@ fun SignUpProfile(
     onSaveProfile: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val profileViewModel = remember { ProfileViewModel() }
+    val profileViewModel = remember { ProfileViewModel(context) }
     val sharedPrefsManager = remember { SharedPreferencesManager(context) }
     
     // Obtener userId si no se pasa como parámetro
@@ -64,8 +67,8 @@ fun SignUpProfile(
     val textFirstName = remember { mutableStateOf("") }
     val textLastName = remember { mutableStateOf("") }
     val textEmail= remember { mutableStateOf("") }
-    val textPosition = remember { mutableStateOf("EMPLOYEE") }
-    val textDepartment = remember { mutableStateOf("IT") }
+    var selectedPosition by remember { mutableStateOf<Position?>(Position.EMPLOYEE) }
+    var selectedDepartment by remember { mutableStateOf<Department?>(Department.IT) }
     
     // Observar el resultado de crear perfil
     LaunchedEffect(profileViewModel.createProfileResult) {
@@ -241,88 +244,24 @@ fun SignUpProfile(
                                 .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,)
                         )
                     }
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 12.dp,horizontal = 16.dp,)
-                    ){
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp,)
-                        ){
-                            Text("Position",
-                                color = Color(0xFFFFFFFF),
-                                fontSize = 16.sp,
-                            )
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clip(shape = RoundedCornerShape(8.dp))
-                                .fillMaxWidth()
-                                .background(
-                                    color = Color(0xFF302149),
-                                    shape = RoundedCornerShape(8.dp)
-                                )
-                                .padding(vertical = 9.dp,horizontal = 6.dp,)
-                        ){
-                            TextFieldView(
-                                placeholder = "Select  your  position",
-                                value = textPosition.value,
-                                onValueChange = { newText -> textPosition.value = newText },
-                                textStyle = TextStyle(
-                                    color = Color(0xFFFFFFFF),
-                                    fontSize = 16.sp,
-                                ),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(vertical = 7.dp,)
-                            )
-
-                        }
-                    }
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 12.dp,horizontal = 16.dp,)
-                    ){
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp,)
-                        ){
-                            Text("Department",
-                                color = Color(0xFFFFFFFF),
-                                fontSize = 16.sp,
-                            )
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clip(shape = RoundedCornerShape(8.dp))
-                                .fillMaxWidth()
-                                .background(
-                                    color = Color(0xFF302149),
-                                    shape = RoundedCornerShape(8.dp)
-                                )
-                                .padding(vertical = 9.dp,horizontal = 6.dp,)
-                        ){
-                            TextFieldView(
-                                placeholder = "Select  your  department",
-                                value = textDepartment.value,
-                                onValueChange = { newText -> textDepartment.value = newText },
-                                textStyle = TextStyle(
-                                    color = Color(0xFFFFFFFF),
-                                    fontSize = 16.sp,
-                                ),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(vertical = 7.dp,)
-                            )
-
-                        }
-                    }
+                    // Position Dropdown
+                    CustomDropDownMenu(
+                        label = "Position",
+                        placeholder = "Select your position",
+                        selectedOption = selectedPosition,
+                        options = Position.values().toList(),
+                        onOptionSelected = { selectedPosition = it },
+                        getDisplayText = { it.displayName }
+                    )
+                    // Department Dropdown
+                    CustomDropDownMenu(
+                        label = "Department",
+                        placeholder = "Select your department", 
+                        selectedOption = selectedDepartment,
+                        options = Department.values().toList(),
+                        onOptionSelected = { selectedDepartment = it },
+                        getDisplayText = { it.displayName }
+                    )
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -376,8 +315,8 @@ fun SignUpProfile(
                             if (textFirstName.value.isNotBlank() && 
                                 textLastName.value.isNotBlank() && 
                                 textEmail.value.isNotBlank() &&
-                                textPosition.value.isNotBlank() &&
-                                textDepartment.value.isNotBlank() &&
+                                selectedPosition != null &&
+                                selectedDepartment != null &&
                                 actualUserId.isNotEmpty()) {
                                 
                                 profileViewModel.createProfile(
@@ -386,8 +325,8 @@ fun SignUpProfile(
                                     lastName = textLastName.value,
                                     email = textEmail.value,
                                     avatarUrl = null, // Por ahora null
-                                    position = textPosition.value,
-                                    department = textDepartment.value
+                                    position = selectedPosition!!,
+                                    department = selectedDepartment!!
                                 )
                             }
                         },
