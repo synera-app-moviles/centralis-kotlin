@@ -26,4 +26,7 @@ object RetrofitClient {
     val profileWebService: ProfileWebService by lazy {
         retrofit.create(ProfileWebService::class.java)
     }
+
+    val retrofitInstance: Retrofit
+        get() = retrofit
 }

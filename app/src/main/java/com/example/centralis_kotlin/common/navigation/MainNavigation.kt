@@ -60,7 +60,7 @@ fun MainNavigation(onLogout: () -> Unit) {
             }
 
             //  Announcements (lista principal)
-            composable(NavigationRoutes.ANNOUNCEMENTS) {
+            composable(route = NavigationRoutes.ANNOUNCEMENTS) {
                 AnnouncementListScreen(
                     onSelect = { announcement ->
                         navController.navigate("${NavigationRoutes.ANNOUNCEMENT_DETAIL}/${announcement.id}")

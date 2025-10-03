@@ -12,10 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -25,12 +22,17 @@ import com.example.centralis_kotlin.announcement.presentation.viewmodels.Announc
 
 @Composable
 fun AnnouncementListScreen(
-    onSelect: (com.example.centralis_kotlin.announcement.model.Announcement) -> Unit,
+    onSelect: (String) -> Unit, // pasamos el ID en lugar del objeto completo
     onCreate: () -> Unit = {},
     isManager: Boolean = false,
     vm: AnnouncementViewModel = viewModel()
 ) {
     val announcementsState by vm.announcements.collectAsState()
+
+    // Lanzamos la carga al entrar a la pantalla
+    LaunchedEffect(Unit) {
+        vm.loadAnnouncements()
+    }
 
     Scaffold(
         topBar = {
@@ -44,24 +46,44 @@ fun AnnouncementListScreen(
                     onClick = onCreate,
                     containerColor = MaterialTheme.colorScheme.primary
                 ) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "Create announcement", tint = MaterialTheme.colorScheme.onPrimary)
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Create announcement",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
             }
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(announcementsState, key = { it.id }) { announcement ->
-                AnnouncementCard(
-                    announcementTitle = announcement.title,
-                    priority = announcement.priority,
-                    onClick = { onSelect(announcement) }
-                )
+        when {
+            announcementsState.isEmpty() -> {
+                // Si aún no hay anuncios (o sigue cargando)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
+            }
+            else -> {
+                // Mostrar lista de anuncios
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(announcementsState, key = { it.id }) { announcement ->
+                        AnnouncementCard(
+                            announcementTitle = announcement.title,
+                            priority = announcement.priority,
+                            onClick = { onSelect(announcement.id) }
+                        )
+                    }
+                }
             }
         }
     }
@@ -120,8 +142,9 @@ private fun AnnouncementCard(
 
             // Priority pill
             val pillColor = when (priority) {
-                Priority.Urgent -> MaterialTheme.colorScheme.primary
+                Priority.LOW -> MaterialTheme.colorScheme.tertiary
                 Priority.High -> MaterialTheme.colorScheme.secondary
+                Priority.Urgent -> MaterialTheme.colorScheme.primary
                 Priority.Normal -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             }
 
