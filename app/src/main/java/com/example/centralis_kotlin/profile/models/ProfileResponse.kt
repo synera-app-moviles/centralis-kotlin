@@ -8,6 +8,6 @@ data class ProfileResponse(
     val email: String,
     val fullName: String,
     val avatarUrl: String?,
-    val position: String,
-    val department: String
+    val position: Position,
+    val department: Department
 )

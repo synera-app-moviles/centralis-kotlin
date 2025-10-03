@@ -6,6 +6,6 @@ data class ProfileRequest(
     val lastName: String,
     val email: String,
     val avatarUrl: String? = null,
-    val position: String, // EMPLOYEE, MANAGER, DIRECTOR
-    val department: String // IT, HR, FINANCE, OPERATIONS, MARKETING, SALES
+    val position: Position,
+    val department: Department
 )
