@@ -18,6 +18,9 @@ import androidx.compose.ui.text.style.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ButtonDefaults
 import androidx.navigation.NavHostController
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.platform.LocalContext
+import com.example.centralis_kotlin.iam.presentation.viewmodels.IAMViewModel
 
 /*
 @Composable
@@ -50,9 +53,26 @@ fun SignUpView(
     nav: NavHostController,
     onSignUpSuccess: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val iamViewModel = remember { IAMViewModel(context) }
+    
+    // Estados para todos los campos del registro completo
     val textUserName = remember { mutableStateOf("") }
     val textPassword = remember { mutableStateOf("") }
     val textPassword1 = remember { mutableStateOf("") }
+    val textName = remember { mutableStateOf("") }
+    val textLastName = remember { mutableStateOf("") }
+    val textEmail = remember { mutableStateOf("") }
+    
+    // Observar el resultado del registro
+    LaunchedEffect(iamViewModel.signUpResult) {
+        iamViewModel.signUpResult?.let { result ->
+            if (result.id.isNotEmpty()) {
+                onSignUpSuccess()
+                iamViewModel.clearResults()
+            }
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -146,6 +166,112 @@ fun SignUpView(
                             .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,)
                     )
                 }
+                
+                // Campo Name
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp,horizontal = 16.dp,)
+                ){
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp,)
+                    ){
+                        Text("Name",
+                            color = Color(0xFFFFFFFF),
+                            fontSize = 16.sp,
+                        )
+                    }
+                    TextFieldView(
+                        placeholder = "Enter your name",
+                        value = textName.value,
+                        onValueChange = { newText -> textName.value = newText },
+                        textStyle = TextStyle(
+                            color = Color(0xFFA58ECC),
+                            fontSize = 16.sp,
+                        ),
+                        modifier = Modifier
+                            .clip(shape = RoundedCornerShape(8.dp))
+                            .fillMaxWidth()
+                            .background(
+                                color = Color(0xFF302149),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,)
+                    )
+                }
+                
+                // Campo Last Name
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp,horizontal = 16.dp,)
+                ){
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp,)
+                    ){
+                        Text("Last Name",
+                            color = Color(0xFFFFFFFF),
+                            fontSize = 16.sp,
+                        )
+                    }
+                    TextFieldView(
+                        placeholder = "Enter your last name",
+                        value = textLastName.value,
+                        onValueChange = { newText -> textLastName.value = newText },
+                        textStyle = TextStyle(
+                            color = Color(0xFFA58ECC),
+                            fontSize = 16.sp,
+                        ),
+                        modifier = Modifier
+                            .clip(shape = RoundedCornerShape(8.dp))
+                            .fillMaxWidth()
+                            .background(
+                                color = Color(0xFF302149),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,)
+                    )
+                }
+                
+                // Campo Email
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp,horizontal = 16.dp,)
+                ){
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp,)
+                    ){
+                        Text("Email",
+                            color = Color(0xFFFFFFFF),
+                            fontSize = 16.sp,
+                        )
+                    }
+                    TextFieldView(
+                        placeholder = "Enter your email",
+                        value = textEmail.value,
+                        onValueChange = { newText -> textEmail.value = newText },
+                        textStyle = TextStyle(
+                            color = Color(0xFFA58ECC),
+                            fontSize = 16.sp,
+                        ),
+                        modifier = Modifier
+                            .clip(shape = RoundedCornerShape(8.dp))
+                            .fillMaxWidth()
+                            .background(
+                                color = Color(0xFF302149),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,)
+                    )
+                }
+                
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -239,11 +365,74 @@ fun SignUpView(
                         fontSize = 14.sp,
                     )
                 }
+                
+                // Validación visual de contraseñas
+                if (textPassword.value.isNotEmpty() && textPassword1.value.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        if (textPassword.value != textPassword1.value) {
+                            Text(
+                                text = "Las contraseñas no coinciden",
+                                color = Color.Red,
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        } else {
+                            Text(
+                                text = "Las contraseñas coinciden",
+                                color = Color.Green,
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                    }
+                }
+            }
+            
+            // Mostrar errores del ViewModel
+            iamViewModel.signUpError?.let { error ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Text(
+                        text = error,
+                        color = Color.Red,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
             }
 
 
             OutlinedButton(
-                onClick = onSignUpSuccess,
+                onClick = {
+                    // Validar que todos los campos estén llenos y las contraseñas coincidan
+                    if (textUserName.value.isNotBlank() && 
+                        textPassword.value.isNotBlank() && 
+                        textPassword1.value.isNotBlank() &&
+                        textName.value.isNotBlank() &&
+                        textLastName.value.isNotBlank() &&
+                        textEmail.value.isNotBlank()) {
+                        
+                        if (textPassword.value == textPassword1.value) {
+                            iamViewModel.signUp(
+                                username = textUserName.value,
+                                password = textPassword.value,
+                                name = textName.value,
+                                lastname = textLastName.value,
+                                email = textEmail.value
+                            )
+                        } else {
+                            // Las contraseñas no coinciden - podrías mostrar un error aquí
+                        }
+                    }
+                },
+                enabled = !iamViewModel.isSignUpLoading,
                 border = BorderStroke(0.dp, Color.Transparent),
                 colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent),
                 contentPadding = PaddingValues(),
@@ -252,7 +441,7 @@ fun SignUpView(
                     .clip(shape = RoundedCornerShape(8.dp))
                     .fillMaxWidth()
                     .background(
-                        color = Color(0xFF823DF9),
+                        color = if (iamViewModel.isSignUpLoading) Color(0xFF823DF9).copy(alpha = 0.6f) else Color(0xFF823DF9),
                         shape = RoundedCornerShape(8.dp)
                     )
             ){
@@ -261,10 +450,12 @@ fun SignUpView(
                     modifier = Modifier
                         .padding(vertical = 12.dp,)
                 ){
-                    Column(
-                        modifier = Modifier
-                            .padding(bottom = 1.dp,)
-                    ){
+                    if (iamViewModel.isSignUpLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    } else {
                         Text("Sign Up",
                             color = Color(0xFFFFFFFF),
                             fontSize = 16.sp,

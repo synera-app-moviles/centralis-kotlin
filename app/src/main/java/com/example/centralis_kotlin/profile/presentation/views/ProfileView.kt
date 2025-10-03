@@ -23,6 +23,10 @@ import androidx.compose.ui.layout.*
 import androidx.navigation.NavHostController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.platform.LocalContext
+import com.example.centralis_kotlin.profile.presentation.viewmodels.ProfileViewModel
+import com.example.centralis_kotlin.common.SharedPreferencesManager
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
@@ -30,6 +34,18 @@ fun ProfileView(
     nav: NavHostController,
     onLogout: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val profileViewModel = remember { ProfileViewModel() }
+    val sharedPrefsManager = remember { SharedPreferencesManager(context) }
+    
+    // Obtener userId y cargar perfil
+    val userId = sharedPrefsManager.getUserId() ?: ""
+    
+    LaunchedEffect(userId) {
+        if (userId.isNotEmpty()) {
+            profileViewModel.getProfileByUserId(userId)
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()

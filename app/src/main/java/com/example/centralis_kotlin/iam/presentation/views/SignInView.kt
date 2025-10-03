@@ -26,6 +26,9 @@ import androidx.compose.ui.text.*
 import androidx.compose.ui.layout.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavHostController
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.platform.LocalContext
+import com.example.centralis_kotlin.iam.presentation.viewmodels.IAMViewModel
 
 
 @Composable
@@ -33,8 +36,21 @@ fun SignInView(
     nav: NavHostController,
     onLoginSuccess: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val iamViewModel = remember { IAMViewModel(context) }
+    
     val textUsername= remember { mutableStateOf("") }
     val textPassword = remember { mutableStateOf("") }
+    
+    // Observar el resultado del login
+    LaunchedEffect(iamViewModel.loginResult) {
+        iamViewModel.loginResult?.let { result ->
+            if (result.token != null) {
+                onLoginSuccess()
+                iamViewModel.clearResults()
+            }
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -186,8 +202,30 @@ fun SignInView(
                         )
                     }
                 }
+                
+                // Mostrar errores
+                iamViewModel.loginError?.let { error ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        Text(
+                            text = error,
+                            color = Color.Red,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
+                }
+                
                 OutlinedButton(
-                    onClick = onLoginSuccess,
+                    onClick = {
+                        if (textUsername.value.isNotBlank() && textPassword.value.isNotBlank()) {
+                            iamViewModel.signIn(textUsername.value, textPassword.value)
+                        }
+                    },
+                    enabled = !iamViewModel.isLoginLoading,
                     border = BorderStroke(0.dp, Color.Transparent),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent),
                     contentPadding = PaddingValues(),
@@ -196,7 +234,7 @@ fun SignInView(
                         .clip(shape = RoundedCornerShape(8.dp))
                         .fillMaxWidth()
                         .background(
-                            color = Color(0xFF823DF9),
+                            color = if (iamViewModel.isLoginLoading) Color(0xFF823DF9).copy(alpha = 0.6f) else Color(0xFF823DF9),
                             shape = RoundedCornerShape(8.dp)
                         )
                 ){
@@ -205,10 +243,13 @@ fun SignInView(
                         modifier = Modifier
                             .padding(vertical = 12.dp,)
                     ){
-                        Column(
-                            modifier = Modifier
-                                .padding(bottom = 1.dp,)
-                        ){
+                        if (iamViewModel.isLoginLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.width(20.dp)
+                                    .height(20.dp)
+                            )
+                        } else {
                             Text("Sign In",
                                 color = Color(0xFFFFFFFF),
                                 fontSize = 16.sp,

@@ -62,8 +62,11 @@ dependencies {
     // Glide para Compose: Para cargar imágenes desde URLs
     implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
 
+    // Retrofit: Para hacer peticiones HTTP a APIs
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+    // Gson Converter: Para convertir JSON automáticamente a objetos Kotlin
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
 
 
     testImplementation(libs.junit)
@@ -73,6 +76,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
-
 }
