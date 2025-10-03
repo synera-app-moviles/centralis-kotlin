@@ -32,11 +32,11 @@ fun CommentCard(comment: Comment) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
+                /*Text(
                     text = comment.employeeId, // podrías mapearlo a nombre real con IAM
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary
-                )
+                )*/
 
                 val createdAtText = try {
                     COMMENT_DATE_FORMATTER.format(comment.createdAt)
