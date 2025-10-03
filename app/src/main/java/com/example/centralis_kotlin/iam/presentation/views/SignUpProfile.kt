@@ -18,6 +18,10 @@ import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.*
 import androidx.compose.ui.layout.*
 import androidx.navigation.NavHostController
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.platform.LocalContext
+import com.example.centralis_kotlin.profile.presentation.viewmodels.ProfileViewModel
+import com.example.centralis_kotlin.common.SharedPreferencesManager
 
 @Composable
 fun TextFieldView(
@@ -47,13 +51,31 @@ fun TextFieldView(
 @Composable
 fun SignUpProfile(
     nav: NavHostController,
+    userId: String = "", // Recibir userId como parámetro
     onSaveProfile: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val profileViewModel = remember { ProfileViewModel() }
+    val sharedPrefsManager = remember { SharedPreferencesManager(context) }
+    
+    // Obtener userId si no se pasa como parámetro
+    val actualUserId = userId.ifEmpty { sharedPrefsManager.getUserId() ?: "" }
+    
     val textFirstName = remember { mutableStateOf("") }
     val textLastName = remember { mutableStateOf("") }
     val textEmail= remember { mutableStateOf("") }
-    val textPosition = remember { mutableStateOf("") }
-    val textDepartment = remember { mutableStateOf("") }
+    val textPosition = remember { mutableStateOf("EMPLOYEE") }
+    val textDepartment = remember { mutableStateOf("IT") }
+    
+    // Observar el resultado de crear perfil
+    LaunchedEffect(profileViewModel.createProfileResult) {
+        profileViewModel.createProfileResult?.let { result ->
+            if (result.profileId.isNotEmpty()) {
+                onSaveProfile()
+                profileViewModel.clearResults()
+            }
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -331,8 +353,45 @@ fun SignUpProfile(
                             }
                         }
                     }
+                    
+                    // Mostrar errores
+                    profileViewModel.operationError?.let { error ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            Text(
+                                text = error,
+                                color = Color.Red,
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                    }
+                    
                     OutlinedButton(
-                        onClick = onSaveProfile,
+                        onClick = {
+                            // Validar que todos los campos estén llenos
+                            if (textFirstName.value.isNotBlank() && 
+                                textLastName.value.isNotBlank() && 
+                                textEmail.value.isNotBlank() &&
+                                textPosition.value.isNotBlank() &&
+                                textDepartment.value.isNotBlank() &&
+                                actualUserId.isNotEmpty()) {
+                                
+                                profileViewModel.createProfile(
+                                    userId = actualUserId,
+                                    firstName = textFirstName.value,
+                                    lastName = textLastName.value,
+                                    email = textEmail.value,
+                                    avatarUrl = null, // Por ahora null
+                                    position = textPosition.value,
+                                    department = textDepartment.value
+                                )
+                            }
+                        },
+                        enabled = !profileViewModel.isOperationLoading,
                         border = BorderStroke(0.dp, Color.Transparent),
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent),
                         contentPadding = PaddingValues(),
@@ -341,7 +400,7 @@ fun SignUpProfile(
                             .clip(shape = RoundedCornerShape(8.dp))
                             .fillMaxWidth()
                             .background(
-                                color = Color(0xFF823DF9),
+                                color = if (profileViewModel.isOperationLoading) Color(0xFF823DF9).copy(alpha = 0.6f) else Color(0xFF823DF9),
                                 shape = RoundedCornerShape(8.dp)
                             )
                     ){
@@ -350,11 +409,18 @@ fun SignUpProfile(
                             modifier = Modifier
                                 .padding(vertical = 12.dp,)
                         ){
-                            Text("Save Profile",
-                                color = Color(0xFFFFFFFF),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
+                            if (profileViewModel.isOperationLoading) {
+                                CircularProgressIndicator(
+                                    color = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            } else {
+                                Text("Save Profile",
+                                    color = Color(0xFFFFFFFF),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
                         }
                     }
                 }
