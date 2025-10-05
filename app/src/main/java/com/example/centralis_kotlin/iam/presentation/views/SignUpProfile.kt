@@ -18,6 +18,13 @@ import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.*
 import androidx.compose.ui.layout.*
 import androidx.navigation.NavHostController
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.platform.LocalContext
+import com.example.centralis_kotlin.profile.presentation.viewmodels.ProfileViewModel
+import com.example.centralis_kotlin.common.SharedPreferencesManager
+import com.example.centralis_kotlin.profile.models.Position
+import com.example.centralis_kotlin.profile.models.Department
+import com.example.centralis_kotlin.common.components.CustomDropDownMenu
 
 @Composable
 fun TextFieldView(
@@ -47,13 +54,31 @@ fun TextFieldView(
 @Composable
 fun SignUpProfile(
     nav: NavHostController,
+    userId: String = "", // Recibir userId como parámetro
     onSaveProfile: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val profileViewModel = remember { ProfileViewModel(context) }
+    val sharedPrefsManager = remember { SharedPreferencesManager(context) }
+    
+    // Obtener userId si no se pasa como parámetro
+    val actualUserId = userId.ifEmpty { sharedPrefsManager.getUserId() ?: "" }
+    
     val textFirstName = remember { mutableStateOf("") }
     val textLastName = remember { mutableStateOf("") }
     val textEmail= remember { mutableStateOf("") }
-    val textPosition = remember { mutableStateOf("") }
-    val textDepartment = remember { mutableStateOf("") }
+    var selectedPosition by remember { mutableStateOf<Position?>(Position.EMPLOYEE) }
+    var selectedDepartment by remember { mutableStateOf<Department?>(Department.IT) }
+    
+    // Observar el resultado de crear perfil
+    LaunchedEffect(profileViewModel.createProfileResult) {
+        profileViewModel.createProfileResult?.let { result ->
+            if (result.profileId.isNotEmpty()) {
+                onSaveProfile()
+                profileViewModel.clearResults()
+            }
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -219,88 +244,24 @@ fun SignUpProfile(
                                 .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,)
                         )
                     }
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 12.dp,horizontal = 16.dp,)
-                    ){
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp,)
-                        ){
-                            Text("Position",
-                                color = Color(0xFFFFFFFF),
-                                fontSize = 16.sp,
-                            )
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clip(shape = RoundedCornerShape(8.dp))
-                                .fillMaxWidth()
-                                .background(
-                                    color = Color(0xFF302149),
-                                    shape = RoundedCornerShape(8.dp)
-                                )
-                                .padding(vertical = 9.dp,horizontal = 6.dp,)
-                        ){
-                            TextFieldView(
-                                placeholder = "Select  your  position",
-                                value = textPosition.value,
-                                onValueChange = { newText -> textPosition.value = newText },
-                                textStyle = TextStyle(
-                                    color = Color(0xFFFFFFFF),
-                                    fontSize = 16.sp,
-                                ),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(vertical = 7.dp,)
-                            )
-
-                        }
-                    }
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 12.dp,horizontal = 16.dp,)
-                    ){
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp,)
-                        ){
-                            Text("Department",
-                                color = Color(0xFFFFFFFF),
-                                fontSize = 16.sp,
-                            )
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clip(shape = RoundedCornerShape(8.dp))
-                                .fillMaxWidth()
-                                .background(
-                                    color = Color(0xFF302149),
-                                    shape = RoundedCornerShape(8.dp)
-                                )
-                                .padding(vertical = 9.dp,horizontal = 6.dp,)
-                        ){
-                            TextFieldView(
-                                placeholder = "Select  your  department",
-                                value = textDepartment.value,
-                                onValueChange = { newText -> textDepartment.value = newText },
-                                textStyle = TextStyle(
-                                    color = Color(0xFFFFFFFF),
-                                    fontSize = 16.sp,
-                                ),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(vertical = 7.dp,)
-                            )
-
-                        }
-                    }
+                    // Position Dropdown
+                    CustomDropDownMenu(
+                        label = "Position",
+                        placeholder = "Select your position",
+                        selectedOption = selectedPosition,
+                        options = Position.values().toList(),
+                        onOptionSelected = { selectedPosition = it },
+                        getDisplayText = { it.displayName }
+                    )
+                    // Department Dropdown
+                    CustomDropDownMenu(
+                        label = "Department",
+                        placeholder = "Select your department", 
+                        selectedOption = selectedDepartment,
+                        options = Department.values().toList(),
+                        onOptionSelected = { selectedDepartment = it },
+                        getDisplayText = { it.displayName }
+                    )
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -331,8 +292,45 @@ fun SignUpProfile(
                             }
                         }
                     }
+                    
+                    // Mostrar errores
+                    profileViewModel.operationError?.let { error ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            Text(
+                                text = error,
+                                color = Color.Red,
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                    }
+                    
                     OutlinedButton(
-                        onClick = onSaveProfile,
+                        onClick = {
+                            // Validar que todos los campos estén llenos
+                            if (textFirstName.value.isNotBlank() && 
+                                textLastName.value.isNotBlank() && 
+                                textEmail.value.isNotBlank() &&
+                                selectedPosition != null &&
+                                selectedDepartment != null &&
+                                actualUserId.isNotEmpty()) {
+                                
+                                profileViewModel.createProfile(
+                                    userId = actualUserId,
+                                    firstName = textFirstName.value,
+                                    lastName = textLastName.value,
+                                    email = textEmail.value,
+                                    avatarUrl = null, // Por ahora null
+                                    position = selectedPosition!!,
+                                    department = selectedDepartment!!
+                                )
+                            }
+                        },
+                        enabled = !profileViewModel.isOperationLoading,
                         border = BorderStroke(0.dp, Color.Transparent),
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent),
                         contentPadding = PaddingValues(),
@@ -341,7 +339,7 @@ fun SignUpProfile(
                             .clip(shape = RoundedCornerShape(8.dp))
                             .fillMaxWidth()
                             .background(
-                                color = Color(0xFF823DF9),
+                                color = if (profileViewModel.isOperationLoading) Color(0xFF823DF9).copy(alpha = 0.6f) else Color(0xFF823DF9),
                                 shape = RoundedCornerShape(8.dp)
                             )
                     ){
@@ -350,11 +348,18 @@ fun SignUpProfile(
                             modifier = Modifier
                                 .padding(vertical = 12.dp,)
                         ){
-                            Text("Save Profile",
-                                color = Color(0xFFFFFFFF),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
+                            if (profileViewModel.isOperationLoading) {
+                                CircularProgressIndicator(
+                                    color = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            } else {
+                                Text("Save Profile",
+                                    color = Color(0xFFFFFFFF),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
                         }
                     }
                 }
