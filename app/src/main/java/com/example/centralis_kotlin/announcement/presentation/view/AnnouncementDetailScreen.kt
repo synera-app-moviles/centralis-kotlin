@@ -9,14 +9,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.centralis_kotlin.announcement.presentation.view.components.CommentCard
 import com.example.centralis_kotlin.announcement.presentation.viewmodels.AnnouncementViewModel
+import com.example.centralis_kotlin.common.navigation.NavigationRoutes
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -27,7 +30,8 @@ private val DETAIL_DATE_FORMATTER = SimpleDateFormat("d 'de' MMMM 'de' yyyy 'a l
 fun AnnouncementDetailScreen(
     announcementId: String,
     onBack: () -> Unit,
-    vm: AnnouncementViewModel = viewModel()
+    vm: AnnouncementViewModel = viewModel(),
+    navController: NavController
 ) {
     val selected by vm.selectedAnnouncement.collectAsState()
     var commentText by remember { mutableStateOf("") }
@@ -52,8 +56,35 @@ fun AnnouncementDetailScreen(
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
+                },
+                actions = {
+                    var expanded by remember { mutableStateOf(false) }
+
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "More options",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Editar") },
+                            onClick = {
+                                expanded = false
+                                // Navegar a la pantalla de edición
+                                navController.navigate("${NavigationRoutes.ANNOUNCEMENT_EDIT}/$announcementId")
+                            }
+                        )
+                    }
                 }
             )
+
+
         }
     ) { padding ->
         Box(

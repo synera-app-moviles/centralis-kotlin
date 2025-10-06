@@ -5,7 +5,7 @@ import com.example.centralis_kotlin.announcement.model.Comment
 import com.example.centralis_kotlin.announcement.model.Priority
 import com.example.centralis_kotlin.announcement.service.IAnnouncementRepository
 import java.util.concurrent.ConcurrentHashMap
-
+/*
 class InMemoryAnnouncementRepository : IAnnouncementRepository {
 
 
@@ -72,4 +72,4 @@ class InMemoryAnnouncementRepository : IAnnouncementRepository {
     }
 }
 
-
+*/

@@ -7,8 +7,8 @@ import java.util.UUID
 interface IAnnouncementRepository {
     fun getAll(): List<Announcement>
     fun getById(id: String): Announcement?
-    fun save(announcement: Announcement): Announcement
     fun delete(id: String)
+    suspend fun save(announcement: Announcement): Announcement
     suspend fun getAnnouncements(): List<Announcement>
     suspend fun getAnnouncementById(id: String): Announcement?
 

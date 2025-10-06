@@ -29,4 +29,12 @@ interface AnnouncementApi {
         @Path("announcementId") announcementId: String,
         @Body comment: CreateCommentDto
     ): CommentDto
+
+    @PUT("api/v1/announcements/{announcementId}")
+    suspend fun updateAnnouncement(
+        @Path("announcementId") id: String,
+        @Body dto: AnnouncementDto
+    ): AnnouncementDto
+
+
 }

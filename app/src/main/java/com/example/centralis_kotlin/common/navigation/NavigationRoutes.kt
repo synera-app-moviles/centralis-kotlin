@@ -10,7 +10,9 @@ object NavigationRoutes {
     const val ANNOUNCEMENTS = "announcements"
     const val ANNOUNCEMENT_DETAIL = "announcement_detail"
     const val ANNOUNCEMENT_CREATE = "announcement_create"
-    
+    const val ANNOUNCEMENT_EDIT = "announcement_edit"
+
+
     // Main app routes
     const val PROFILE = "profile"
     const val EVENTS = "events"

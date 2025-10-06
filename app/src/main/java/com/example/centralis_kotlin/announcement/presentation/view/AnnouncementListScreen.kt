@@ -17,19 +17,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.example.centralis_kotlin.announcement.model.Priority
 import com.example.centralis_kotlin.announcement.presentation.viewmodels.AnnouncementViewModel
+import com.example.centralis_kotlin.common.navigation.NavigationRoutes
 
 @Composable
 fun AnnouncementListScreen(
-    onSelect: (String) -> Unit, // pasamos el ID en lugar del objeto completo
-    onCreate: () -> Unit = {},
-    isManager: Boolean = false,
+    navController: NavHostController,
     vm: AnnouncementViewModel = viewModel()
 ) {
     val announcementsState by vm.announcements.collectAsState()
 
-    // Lanzamos la carga al entrar a la pantalla
+    // Cargar anuncios al entrar
     LaunchedEffect(Unit) {
         vm.loadAnnouncements()
     }
@@ -37,27 +37,31 @@ fun AnnouncementListScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Announcements", color = MaterialTheme.colorScheme.onBackground) }
+                title = {
+                    Text(
+                        "Announcements",
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+
             )
         },
         floatingActionButton = {
-            if (isManager) {
-                FloatingActionButton(
-                    onClick = onCreate,
-                    containerColor = MaterialTheme.colorScheme.primary
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Create announcement",
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
+            FloatingActionButton(
+                onClick = { navController.navigate(NavigationRoutes.ANNOUNCEMENT_CREATE) },
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Create announcement",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
             }
         }
     ) { padding ->
         when {
             announcementsState.isEmpty() -> {
-                // Si aún no hay anuncios (o sigue cargando)
+                // Si no hay anuncios
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -67,8 +71,8 @@ fun AnnouncementListScreen(
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
+
             else -> {
-                // Mostrar lista de anuncios
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -80,7 +84,9 @@ fun AnnouncementListScreen(
                         AnnouncementCard(
                             announcementTitle = announcement.title,
                             priority = announcement.priority,
-                            onClick = { onSelect(announcement.id) }
+                            onClick = {
+                                navController.navigate("${NavigationRoutes.ANNOUNCEMENT_DETAIL}/${announcement.id}")
+                            }
                         )
                     }
                 }
@@ -111,7 +117,7 @@ private fun AnnouncementCard(
                 .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icono en cajita a la izquierda
+            // Icono
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -130,7 +136,7 @@ private fun AnnouncementCard(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Título
+            // Titulo
             Text(
                 text = announcementTitle,
                 style = MaterialTheme.typography.titleMedium,
@@ -140,7 +146,7 @@ private fun AnnouncementCard(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Priority pill
+            // Etiqueta de prioridad
             val pillColor = when (priority) {
                 Priority.LOW -> MaterialTheme.colorScheme.tertiary
                 Priority.High -> MaterialTheme.colorScheme.secondary

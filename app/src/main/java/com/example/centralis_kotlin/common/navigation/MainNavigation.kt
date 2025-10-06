@@ -59,13 +59,10 @@ fun MainNavigation(onLogout: () -> Unit) {
 
             // Announcements (lista principal)
             // onSelect ahora recibe el ID (String)
-            composable(route = NavigationRoutes.ANNOUNCEMENTS) {
-                AnnouncementListScreen(
-                    onSelect = { announcementId ->
-                        navController.navigate("${NavigationRoutes.ANNOUNCEMENT_DETAIL}/$announcementId")
-                    }
-                )
+            composable(NavigationRoutes.ANNOUNCEMENTS) {
+                AnnouncementListScreen(navController = navController)
             }
+
 
             // Announcements -> Detalle
             composable("${NavigationRoutes.ANNOUNCEMENT_DETAIL}/{id}") { backStackEntry ->
@@ -73,10 +70,27 @@ fun MainNavigation(onLogout: () -> Unit) {
                 if (id != null) {
                     AnnouncementDetailScreen(
                         announcementId = id,
-                        onBack = { navController.popBackStack() }
+                        onBack = { navController.popBackStack() },
+                        navController = navController
                     )
                 }
             }
+
+            // Announcements -> Editar
+            composable("${NavigationRoutes.ANNOUNCEMENT_EDIT}/{id}") { backStackEntry ->
+                val id = backStackEntry.arguments?.getString("id")
+                if (id != null) {
+                    EditAnnouncementScreen(
+                        announcementId = id,
+                        onBack = { navController.popBackStack() },
+                        onUpdated = { navController.popBackStack() }
+                    )
+                }
+            }
+
+
+
+
 
             // Announcements -> Crear
             composable(NavigationRoutes.ANNOUNCEMENT_CREATE) {

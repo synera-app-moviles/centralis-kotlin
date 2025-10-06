@@ -16,7 +16,7 @@ class RemoteAnnouncementRepository : IAnnouncementRepository {
 
     private val api = RetrofitClient.retrofitInstance.create(AnnouncementApi::class.java)
 
-    //  Interfaz síncrona  lanzan excepción para que se usen las suspend
+    // Interfaz sincrona
     override fun getAll(): List<Announcement> {
         throw UnsupportedOperationException("Use suspend getAnnouncements() instead")
     }
@@ -25,29 +25,40 @@ class RemoteAnnouncementRepository : IAnnouncementRepository {
         throw UnsupportedOperationException("Use suspend getAnnouncementById() instead")
     }
 
-    override fun save(announcement: Announcement): Announcement {
-        throw UnsupportedOperationException("Use suspend createAnnouncement() instead")
+    /**
+     * Metodo de posteo de anuncio
+     * @param announcement Objeto de anuncio a postear
+     */
+    override suspend fun save(announcement: Announcement): Announcement {
+        return if (announcement.id.isBlank()) {
+            // Crear nuevo
+            api.createAnnouncement(announcement.toDto()).toDomain()
+        } else {
+            // Editar existente
+            api.updateAnnouncement(announcement.id, announcement.toDto()).toDomain()
+        }
     }
 
     override fun delete(id: String) {
         throw UnsupportedOperationException("Use suspend deleteAnnouncement() instead")
     }
 
-    //  Implementaciones suspend
+    //Implementaciones suspend
+
     override suspend fun getAnnouncements(): List<Announcement> {
         return api.getAnnouncements().map { it.toDomain() }
     }
 
     override suspend fun getAnnouncementById(id: String): Announcement? {
         val dto = api.getAnnouncementById(id)
-        // obtenemos comentarios tambien del endpoint de comments
+
         val comments = try {
             api.getComments(id).map { it.toDomain() }
         } catch (t: Throwable) {
             emptyList()
         }
+
         val announcement = dto.toDomain()
-        // aseguramos que comments (mutableList) reciba la lista del backend
         announcement.comments.clear()
         announcement.comments.addAll(comments)
         return announcement
@@ -57,16 +68,14 @@ class RemoteAnnouncementRepository : IAnnouncementRepository {
         return api.getComments(announcementId).map { it.toDomain() }
     }
 
-    // Implementacion del addComment expuesta en la interfaz
     override suspend fun addComment(announcementId: String, content: String, employeeId: String): Comment {
         val dto = CreateCommentDto(content = content, employeeId = employeeId)
         val response = api.addComment(announcementId, dto)
         return response.toDomain()
     }
 
-    
+    //Mappers y helpers
 
-    // Mappers y util helpers
     private fun AnnouncementDto.toDomain(): Announcement {
         return Announcement(
             id = id,
@@ -76,8 +85,22 @@ class RemoteAnnouncementRepository : IAnnouncementRepository {
             priority = mapPriority(priority),
             createdAt = parseIso8601(createdAt),
             createdBy = createdBy ?: "",
-            comments = mutableListOf(), // se rellenan en getAnnouncementById
+            comments = mutableListOf(),
             seenBy = mutableSetOf()
+        )
+    }
+
+    private fun Announcement.toDto(): AnnouncementDto {
+        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
+        return AnnouncementDto(
+            id = id,
+            title = title,
+            description = description,
+            image = image,
+            priority = priority.name,
+            createdAt = sdf.format(createdAt),
+            createdBy = createdBy
         )
     }
 
@@ -96,13 +119,12 @@ class RemoteAnnouncementRepository : IAnnouncementRepository {
         return when (p.trim().lowercase(Locale.getDefault())) {
             "urgent", "urgente" -> Priority.Urgent
             "high", "alto" -> Priority.High
-            "low" -> Priority.Normal
+            "low" -> Priority.LOW
             "normal" -> Priority.Normal
             else -> Priority.Normal
         }
     }
 
-    // Date parser intenta varios patrones comunes
     private fun parseIso8601(value: String?): Date {
         if (value.isNullOrBlank()) return Date()
         val patterns = listOf(
@@ -118,12 +140,8 @@ class RemoteAnnouncementRepository : IAnnouncementRepository {
                 sdf.timeZone = TimeZone.getTimeZone("UTC")
                 val parsed = sdf.parse(value)
                 if (parsed != null) return parsed
-            } catch (t: Throwable) {
-                // ignora y prueba el siguiente patron
-            }
+            } catch (_: Throwable) { }
         }
-        // fallback si ninguna coincide
         return Date()
     }
-
 }
