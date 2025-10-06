@@ -90,11 +90,11 @@ class RemoteAnnouncementRepository : IAnnouncementRepository {
         )
     }
 
-    private fun Announcement.toDto(): AnnouncementDto {
+    private fun Announcement.toDto(withoutId: Boolean = false): AnnouncementDto {
         val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
         sdf.timeZone = TimeZone.getTimeZone("UTC")
         return AnnouncementDto(
-            id = id,
+            id = if (withoutId) "" else id,
             title = title,
             description = description,
             image = image,
@@ -103,6 +103,7 @@ class RemoteAnnouncementRepository : IAnnouncementRepository {
             createdBy = createdBy
         )
     }
+
 
     private fun CommentDto.toDomain(): Comment {
         return Comment(

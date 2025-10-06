@@ -60,7 +60,7 @@ fun CreateAnnouncementScreen(
                 onClick = {
                     if (title.isNotBlank() && description.isNotBlank()) {
                         val newAnnouncement = Announcement(
-                            id = UUID.randomUUID().toString(),
+                            id = "",
                             title = title,
                             description = description,
                             image = null,
