@@ -10,6 +10,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.centralis_kotlin.common.components.BottomNavigationBar
 import com.example.centralis_kotlin.profile.presentation.views.ProfileView
+import com.example.centralis_kotlin.notification.components.NotificationScreen
 
 @Composable
 fun MainNavigation(onLogout: () -> Unit) {
@@ -26,7 +27,7 @@ fun MainNavigation(onLogout: () -> Unit) {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = NavigationRoutes.PROFILE,
+            startDestination = NavigationRoutes.NOTIFICATIONS,
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(NavigationRoutes.PROFILE) { 
@@ -43,6 +44,11 @@ fun MainNavigation(onLogout: () -> Unit) {
             }
             composable(NavigationRoutes.ANNOUNCEMENTS) { 
                 // TODO: AnnouncementsView(navController) 
+            }
+            composable(NavigationRoutes.NOTIFICATIONS) {
+                NotificationScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
         }
     }

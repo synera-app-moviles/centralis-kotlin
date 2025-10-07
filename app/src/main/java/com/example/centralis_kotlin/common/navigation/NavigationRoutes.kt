@@ -11,4 +11,5 @@ object NavigationRoutes {
     const val EVENTS = "events"
     const val CHAT = "chat"
     const val ANNOUNCEMENTS = "announcements"
+    const val NOTIFICATIONS = "notifications"
 }
