@@ -1,4 +1,3 @@
 package com.example.centralis_kotlin.chat.domain.models
 
-class UpdateMessageBodyRequest {
-}
+data class UpdateMessageBodyRequest(val newBody: String)

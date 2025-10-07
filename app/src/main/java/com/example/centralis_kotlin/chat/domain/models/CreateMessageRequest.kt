@@ -1,4 +1,6 @@
 package com.example.centralis_kotlin.chat.domain.models
 
-class CreateMessageRequest {
-}
+data class CreateMessageRequest(
+    val senderId: String,
+    val body: String
+)

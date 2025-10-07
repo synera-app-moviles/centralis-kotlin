@@ -1,4 +1,3 @@
 package com.example.centralis_kotlin.chat.domain.models
 
-class GroupVisibility {
-}
+enum class GroupVisibility { PUBLIC, PRIVATE }

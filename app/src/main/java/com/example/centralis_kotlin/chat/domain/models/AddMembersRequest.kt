@@ -1,4 +1,5 @@
 package com.example.centralis_kotlin.chat.domain.models
 
-class AddMembersRequest {
-}
+data class AddMembersRequest(
+    val memberIds: List<String>
+)
