@@ -5,12 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.rememberNavController
-import com.example.centralis_kotlin.events.presentation.views.AppNavGraph
+import com.example.centralis_kotlin.common.navigation.CentralisApp
 import com.example.centralis_kotlin.ui.theme.CentraliskotlinTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,20 +17,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CentraliskotlinTheme {
-                CentralisApp()
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    CentralisApp()
+                }
             }
         }
-    }
-}
-
-@Composable
-fun CentralisApp() {
-    val navController = rememberNavController()
-
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        AppNavGraph(
-            navController = navController,
-            modifier = Modifier.padding(innerPadding)
-        )
     }
 }

@@ -9,13 +9,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.centralis_kotlin.common.components.BottomNavigationBar
+import com.example.centralis_kotlin.events.presentation.views.AppNavGraph
 import com.example.centralis_kotlin.profile.presentation.views.ProfileView
 
 @Composable
 fun MainNavigation(onLogout: () -> Unit) {
     val navController = rememberNavController()
     val currentRoute by navController.currentBackStackEntryAsState()
-    
+
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
@@ -29,20 +30,21 @@ fun MainNavigation(onLogout: () -> Unit) {
             startDestination = NavigationRoutes.PROFILE,
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable(NavigationRoutes.PROFILE) { 
+            composable(NavigationRoutes.PROFILE) {
                 ProfileView(
                     nav = navController,
                     onLogout = onLogout
                 )
             }
-            composable(NavigationRoutes.EVENTS) { 
-                // TODO: EventsView(navController) 
+            composable(NavigationRoutes.EVENTS) {
+                val eventsNavController = rememberNavController()
+                AppNavGraph(navController = eventsNavController)
             }
-            composable(NavigationRoutes.CHAT) { 
-                // TODO: ChatView(navController) 
+            composable(NavigationRoutes.CHAT) {
+                // TODO: ChatView(navController)
             }
-            composable(NavigationRoutes.ANNOUNCEMENTS) { 
-                // TODO: AnnouncementsView(navController) 
+            composable(NavigationRoutes.ANNOUNCEMENTS) {
+                // TODO: AnnouncementsView(navController)
             }
         }
     }

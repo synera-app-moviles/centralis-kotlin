@@ -165,48 +165,7 @@ fun EventItem(event: Event, onViewClick: () -> Unit = {}) {
 
 @Composable
 fun EventsBottomNav() {
-    NavigationBar(
-        containerColor = androidx.compose.ui.graphics.Color(0xFF30214A),
-        modifier = Modifier.height(64.dp)
-    ) {
-        NavigationBarItem(
-            selected = true,
-            onClick = { /* TODO */ },
-            icon = {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(
-                            color = androidx.compose.ui.graphics.Color(0xFF30214A),
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .offset(y = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.CalendarToday,
-                        contentDescription = "Events",
-                        tint = androidx.compose.ui.graphics.Color(0xFFA68FCC),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            },
-            label = {
-                Text(
-                    "Events",
-                    color = androidx.compose.ui.graphics.Color.White,
-                    modifier = Modifier.offset(y = 10.dp)
-                )
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = androidx.compose.ui.graphics.Color(0xFFA68FCC),
-                unselectedIconColor = androidx.compose.ui.graphics.Color(0xFFA68FCC),
-                selectedTextColor = androidx.compose.ui.graphics.Color.White,
-                unselectedTextColor = androidx.compose.ui.graphics.Color.White,
-                indicatorColor = androidx.compose.ui.graphics.Color(0xFF30214A)
-            )
-        )
-    }
+
 }
 
 // Datos de ejemplo
