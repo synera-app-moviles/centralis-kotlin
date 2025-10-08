@@ -6,14 +6,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.centralis_kotlin.common.components.BottomNavigationBar
 import com.example.centralis_kotlin.events.presentation.views.AppNavGraph
 import com.example.centralis_kotlin.profile.presentation.views.ProfileView
 import com.example.centralis_kotlin.announcement.presentation.view.*
+import com.example.centralis_kotlin.chat.presentation.views.ChatDetailView
+import com.example.centralis_kotlin.chat.presentation.views.ChatView
+import com.example.centralis_kotlin.chat.presentation.views.CreateGroupView
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -47,25 +52,38 @@ fun MainNavigation(onLogout: () -> Unit) {
                     onLogout = onLogout
                 )
             }
+            // Events
             composable(NavigationRoutes.EVENTS) {
                 val eventsNavController = rememberNavController()
                 AppNavGraph(navController = eventsNavController)
             }
             composable(NavigationRoutes.CHAT) {
-                // TODO: ChatView(navController)
+                ChatView(
+                    nav = navController,
+                    onNewChat = { /* navega a 'createChat' si luego lo agregas */ },
+                    onOpenChat = { chat -> /* navega a ChatDetail con chat.id */ }
+                )
             }
-            composable(NavigationRoutes.ANNOUNCEMENTS) {
-                // TODO: AnnouncementsView(navController)
+            composable(NavigationRoutes.CHAT_CREATE) { CreateGroupView(navController) }
 
-            // Events
-            composable(NavigationRoutes.EVENTS) {
-                // TODO: EventsView(navController)
+
+
+            composable(
+                NavigationRoutes.CHAT_DETAIL,
+                arguments = listOf(navArgument("chatId") {
+                    type = NavType.StringType
+                    nullable = false
+                })
+            ) { backStackEntry ->
+                val chatId = backStackEntry.arguments
+                    ?.getString("chatId") ?: ""
+
+                ChatDetailView(
+                    nav = navController,
+                    chatId = chatId
+                )
             }
 
-            // Chat
-            composable(NavigationRoutes.CHAT) {
-                // TODO: ChatView(navController)
-            }
 
             // Announcements (lista principal)
             // onSelect ahora recibe el ID (String)
