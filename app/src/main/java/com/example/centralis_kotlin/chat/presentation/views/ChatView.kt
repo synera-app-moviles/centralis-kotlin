@@ -10,10 +10,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,6 +24,7 @@ import androidx.navigation.NavHostController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.centralis_kotlin.chat.domain.models.ChatItem
+import com.example.centralis_kotlin.chat.presentation.viewmodels.ChatViewModel
 import com.example.centralis_kotlin.common.navigation.NavigationRoutes
 
 
@@ -35,39 +39,29 @@ fun ChatView(
     onNewChat: () -> Unit = {},
     onOpenChat: (ChatItem) -> Unit = {}
 ) {
-    // Mock de datos (luego reemplazas por ViewModel / API)
-    val chats = listOf(
-        ChatItem(
-            id = "1",
-            name = "Marketing Team",
-            lastMessage = "Hey, how are you doing?",
-            avatarUrl = "https://i.pinimg.com/564x/79/60/02/7960020f6dba83b3d44a9846075ab28b.jpg"
-        ),
-        ChatItem(
-            id = "2",
-            name = "Product Team",
-            lastMessage = "Let’s schedule a meeting",
-            avatarUrl = "https://i.pinimg.com/564x/f7/1d/6e/f71d6ee62f9d1a1b0f5d1d1b17a4e9c1.jpg"
-        ),
-        ChatItem(
-            id = "3",
-            name = "Sales Team",
-            lastMessage = "I'll send you the report",
-            avatarUrl = "https://i.pinimg.com/564x/b4/b2/9c/b4b29c0b1e1a9a8c7b3ba6a0d98e9f2a.jpg"
-        ),
-        ChatItem(
-            id = "4",
-            name = "Finance Team",
-            lastMessage = "We need to discuss the budget",
-            avatarUrl = "https://i.pinimg.com/564x/1f/63/42/1f63423a7b3f7a2c31e9e7a2a9a9c1e9.jpg"
-        ),
-        ChatItem(
-            id = "5",
-            name = "Advertising Team",
-            lastMessage = "The new campaign is live!",
-            avatarUrl = "https://i.pinimg.com/564x/5c/6a/2b/5c6a2b8a9a9c3b1f2e4d1a6b7c8d9e0f.jpg"
-        ),
-    )
+
+    val context = LocalContext.current
+    val vm = remember { ChatViewModel(context) }
+
+    // 1) cargar grupos al entrar
+    LaunchedEffect(Unit) { vm.loadMyGroups() }
+
+    // 2) mapear GroupResponse -> tu ChatItem de UI
+    val chats: List<ChatItem> = remember(vm.groups) {
+        vm.groups.map { g ->
+            ChatItem(
+                id = g.id,
+                name = g.name,
+                lastMessage = "", // si luego quieres, trae el último mensaje
+                avatarUrl = g.imageUrl ?: "https://i.pravatar.cc/150?u=${g.id}"
+            )
+        }
+    }
+
+    // 3) estados de carga/error (opcionales)
+    val isLoading = vm.isLoading
+    val error = vm.error
+
 
     Column(
         modifier = Modifier
@@ -100,7 +94,20 @@ fun ChatView(
 
             }
         }
-
+        // indicador de carga / error (opcionales)
+        if (isLoading) {
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = TitleColor)
+            }
+        }
+        error?.let {
+            Text(
+                text = it,
+                color = Color.Red,
+                fontSize = 13.sp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),

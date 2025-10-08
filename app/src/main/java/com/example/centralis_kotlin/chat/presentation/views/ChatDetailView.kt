@@ -16,12 +16,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.example.centralis_kotlin.chat.domain.models.MessageStatus
+import com.example.centralis_kotlin.chat.presentation.viewmodels.ChatDetailViewModel
+import com.example.centralis_kotlin.common.SharedPreferencesManager
+import com.example.centralis_kotlin.profile.presentation.viewmodels.ProfileViewModel
+
+// Paleta (igual a la tuya)
 import com.example.centralis_kotlin.chat.domain.models.MessageUI
 
 // Paleta consistente con tus pantallas
@@ -31,38 +38,27 @@ private val BubbleOther = Color(0xFF2B1E3F)
 private val FieldBg = Color(0xFF221733)
 private val Muted = Color(0xFFA88ECC)
 
-
-
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun ChatDetailView(
     nav: NavHostController,
     chatId: String,
 ) {
-    // Mock: título por id (en real vendría de repo/VM)
-    val title = when (chatId) {
-        "1" -> "Marketing Team"
-        "2" -> "Product Team"
-        "3" -> "Sales Team"
-        "4" -> "Finance Team"
-        else -> "Advertising Team"
-    }
+    val context = LocalContext.current
+    val vm = remember { ChatDetailViewModel(context) }
+    val prefs = remember { SharedPreferencesManager(context) }
+    val myUserId = remember { prefs.getUserId() }
 
-    // Mock de mensajes
-    val messages = remember {
-        listOf(
-            MessageUI("1","Marketing Team","Hey, how are you doing?",
-                "https://i.pinimg.com/564x/79/60/02/7960020f6dba83b3d44a9846075ab28b.jpg", false),
-            MessageUI("2","Product Team","Let's schedule a meeting",
-                "https://i.pinimg.com/564x/f7/1d/6e/f71d6ee62f9d1a1b0f5d1d1b17a4e9c1.jpg", true),
-            MessageUI("3","Sales Team","I'll send you the report",
-                "https://i.pinimg.com/564x/b4/b2/9c/b4b29c0b1e1a9a8c7b3ba6a0d98e9f2a.jpg", false),
-            MessageUI("4","Finance Team","We need to discuss the budget",
-                "https://i.pinimg.com/564x/1f/63/42/1f63423a7b3f7a2c31e9e7a2a9a9c1e9.jpg", true),
-            MessageUI("5","Advertising Team","The new campaign is live!",
-                "https://i.pinimg.com/564x/5c/6a/2b/5c6a2b8a9a9c3b1f2e4d1a6b7c8d9e0f.jpg", false),
-        )
-    }
+    // 1) Cargar mensajes del grupo
+    LaunchedEffect(chatId) { vm.load(chatId) }
+
+    // 2) Estados expuestos por el VM
+    val messages = vm.messages                // List<MessageResponse>
+    val isLoading = vm.isLoading
+    val sending = vm.sending
+    val error = vm.error
+
+
 
     var input by remember { mutableStateOf("") }
 
@@ -81,28 +77,50 @@ fun ChatDetailView(
             IconButton(onClick = { nav.popBackStack() }) {
                 Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
             }
-            // Avatar del grupo (mock: primer avatar de la lista)
+
+
+            // Avatar del header: otro participante si existe, si no el mío
+            val otherSenderId = messages.firstOrNull { it.senderId != vm.currentUserId }?.senderId
+            val headerProfile = vm.profileOf(otherSenderId ?: (vm.currentUserId ?: ""))
             GlideImage(
-                model = messages.firstOrNull { !it.isMe }?.avatar,
+                model = headerProfile?.avatarUrl
+                    ?: "https://i.pinimg.com/736x/e5/c1/c3/e5c1c34fe65d23b9a876b3dcdfd27ba7.jpg",
                 contentDescription = null,
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
+                modifier = Modifier.size(36.dp).clip(CircleShape)
             )
+
             Spacer(Modifier.width(10.dp))
+
+
             Text(
-                title,
+                text = "Chat", // o pásalo por parámetro si lo tienes
                 color = Color.White,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 18.sp,
                 modifier = Modifier.weight(1f)
             )
+
             IconButton(onClick = { /* menú overflow */ }) {
                 Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.White)
             }
         }
 
-        // Lista de mensajes
+        // Loading / Error (opcionales)
+        if (isLoading) {
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Color.White)
+            }
+        }
+        error?.let {
+            Text(
+                text = it,
+                color = Color.Red,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+            )
+        }
+
+        // Lista de mensajes (MessageResponse)
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -110,49 +128,65 @@ fun ChatDetailView(
                 .padding(horizontal = 12.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            items(messages, key = { it.id }) { msg ->
-                Column(
+            items(messages, key = { it.messageId }) { msg ->
+                val isMe = msg.senderId == vm.currentUserId
+                val profile = vm.profileOf(msg.senderId)
+
+                // 1) Nombre del autor SIEMPRE
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = if (msg.isMe) Alignment.End else Alignment.Start
+                    horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start
                 ) {
-                    // Etiqueta de autor (como en el Figma)
                     Text(
-                        msg.author,
+                        text = profile?.fullName ?: msg.senderId.take(8),
                         color = Muted,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                     )
-                    Row(
-                        verticalAlignment = Alignment.Top
+                }
+
+                // 2) Burbuja + avatar
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start
+                ) {
+                    if (!isMe) {
+                        GlideImage(
+                            model = profile?.avatarUrl
+                                ?: "https://i.pinimg.com/736x/e5/c1/c3/e5c1c34fe65d23b9a876b3dcdfd27ba7.jpg",
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp).clip(CircleShape)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                    }
+
+                    Surface(
+                        color = if (isMe) BubbleMine else BubbleOther,
+                        shape = MaterialTheme.shapes.medium
                     ) {
-                        if (!msg.isMe) {
-                            GlideImage(
-                                model = msg.avatar,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(CircleShape)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                        } else {
-                            Spacer(Modifier.width(28.dp)) // equilibrar layout
-                        }
-                        Surface(
-                            color = if (msg.isMe) BubbleMine else BubbleOther,
-                            shape = MaterialTheme.shapes.medium
-                        ) {
-                            Text(
-                                msg.text,
-                                color = Color.White,
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
-                            )
-                        }
+                        Text(
+                            text = msg.body, // <- viene del backend
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+                        )
+                    }
+
+                    if (isMe) {
+                        Spacer(Modifier.width(8.dp))
+                        GlideImage(
+                            model = vm.profileOf(vm.currentUserId ?: "")?.avatarUrl
+                                ?: "https://i.pinimg.com/736x/e5/c1/c3/e5c1c34fe65d23b9a876b3dcdfd27ba7.jpg",
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp).clip(CircleShape)
+                        )
                     }
                 }
             }
+
         }
 
-        // Barra de input
+        // Barra de input: ahora envía usando el VM
         Row(
             Modifier
                 .fillMaxWidth()
@@ -177,10 +211,22 @@ fun ChatDetailView(
             )
             Spacer(Modifier.width(8.dp))
             FilledIconButton(
-                onClick = { /* send mock */ },
+                onClick = {
+                    vm.send(chatId, input)
+                    input = ""
+                },
+                enabled = input.isNotBlank() && !sending,
                 colors = IconButtonDefaults.filledIconButtonColors(containerColor = BubbleMine)
             ) {
-                Icon(Icons.Default.Send, contentDescription = "Send", tint = Color.White)
+                if (sending) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Icon(Icons.Default.Send, contentDescription = "Send", tint = Color.White)
+                }
             }
         }
     }

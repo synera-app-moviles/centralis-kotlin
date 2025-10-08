@@ -15,20 +15,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.example.centralis_kotlin.chat.domain.models.Participant
+import com.example.centralis_kotlin.chat.presentation.viewmodels.ChatViewModel
+import com.example.centralis_kotlin.chat.domain.models.GroupVisibility
+import com.example.centralis_kotlin.profile.presentation.viewmodels.ProfileViewModel
 
-// Paleta consistente con tu app
+// Paleta
 private val Bg = Color(0xFF160F23)
 private val CardBg = Color(0xFF221733)
 private val Muted = Color(0xFFA88ECC)
 private val Accent = Color(0xFF8E3DF9)
-
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
@@ -36,22 +38,39 @@ fun CreateGroupView(
     nav: NavHostController,
     onCreate: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+
+    // VM de chat (crear grupo)
+    val chatVm = remember { ChatViewModel(context) }
+    // VM de perfiles (para listar participantes reales)
+    val profileVm = remember { ProfileViewModel(context) }
+
     var groupName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var query by remember { mutableStateOf("") }
+    var visibility by remember { mutableStateOf(GroupVisibility.PUBLIC) } // si luego quieres selector
 
-    // Mock de participantes
-    val all = remember {
-        listOf(
-            Participant("1","Lucas","Desarrollador","https://i.pinimg.com/564x/79/60/02/7960020f6dba83b3d44a9846075ab28b.jpg"),
-            Participant("2","Sofía","Diseñadora","https://i.pinimg.com/564x/b4/b2/9c/b4b29c0b1e1a9a8c7b3ba6a0d98e9f2a.jpg"),
-            Participant("3","Martín","Marketing","https://i.pinimg.com/564x/f7/1d/6e/f71d6ee62f9d1a1b0f5d1d1b17a4e9c1.jpg"),
-            Participant("4","Valentina","Ventas","https://i.pinimg.com/564x/1f/63/42/1f63423a7b3f7a2c31e9e7a2a9a9c1e9.jpg"),
-        )
+    // 1) Cargar perfiles reales
+    LaunchedEffect(Unit) { profileVm.getAllProfiles() }
+
+    // 2) Adaptar perfiles → items de la UI
+    val allPeople = profileVm.profilesList
+    val filtered = remember(query, allPeople) {
+        if (query.isBlank()) allPeople
+        else allPeople.filter {
+            it.fullName.contains(query, true) ||
+                    it.position.name.contains(query, true)
+        }
     }
-    val filtered = remember(query, all) {
-        if (query.isBlank()) all else all.filter {
-            it.name.contains(query, true) || it.role.contains(query, true)
+
+    // 3) Selección de participantes (userIds reales)
+    val selectedIds = remember { mutableStateListOf<String>() }
+
+    // 4) Cerrar cuando el grupo se creó
+    LaunchedEffect(chatVm.createResult) {
+        if (chatVm.createResult != null) {
+            onCreate()
+            nav.popBackStack()
         }
     }
 
@@ -76,12 +95,12 @@ fun CreateGroupView(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f),
             )
-            Spacer(Modifier.size(58.dp)) // balance visual
+            Spacer(Modifier.size(58.dp))
         }
 
         Spacer(Modifier.height(12.dp))
 
-        // Nombre del grupo
+        // Nombre
         OutlinedTextField(
             value = groupName,
             onValueChange = { groupName = it },
@@ -121,9 +140,9 @@ fun CreateGroupView(
 
         Spacer(Modifier.height(12.dp))
 
-        // Upload image (mock)
+        // (Opcional) Upload image – pendiente de flujo real
         OutlinedButton(
-            onClick = { /* no-op: selector mock */ },
+            onClick = { /* TODO: selector de imagen si lo agregan */ },
             colors = ButtonDefaults.outlinedButtonColors(containerColor = CardBg),
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.medium
@@ -142,7 +161,7 @@ fun CreateGroupView(
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
-            placeholder = { Text("Search for employees or groups") },
+            placeholder = { Text("Search for employees") },
             trailingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Muted) },
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
@@ -158,34 +177,38 @@ fun CreateGroupView(
 
         Spacer(Modifier.height(8.dp))
 
-        // Lista de participantes (checkbox mock)
+        // Lista real de participantes (desde Profile)
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(filtered) { p ->
-                var checked by remember { mutableStateOf(false) }
+            items(filtered, key = { it.userId }) { profile ->
+                val checked = selectedIds.contains(profile.userId)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
+                    val avatar = profile.avatarUrl ?: "https://i.pravatar.cc/100?u=${profile.userId}"
                     GlideImage(
-                        model = p.avatar,
-                        contentDescription = "${p.name} avatar",
+                        model = avatar,
+                        contentDescription = "${profile.fullName} avatar",
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
                     )
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(p.name, color = Color.White, fontWeight = FontWeight.SemiBold)
-                        Text(p.role, color = Muted, fontSize = 12.sp)
+                        Text(profile.fullName, color = Color.White, fontWeight = FontWeight.SemiBold)
+                        Text(profile.position.name, color = Muted, fontSize = 12.sp)
                     }
                     Checkbox(
                         checked = checked,
-                        onCheckedChange = { checked = it },
+                        onCheckedChange = { isChecked ->
+                            if (isChecked) selectedIds.add(profile.userId)
+                            else selectedIds.remove(profile.userId)
+                        },
                         colors = CheckboxDefaults.colors(
                             checkedColor = Accent,
                             uncheckedColor = Muted
@@ -195,15 +218,34 @@ fun CreateGroupView(
             }
         }
 
+        // Crear grupo (llama al WS real)
         Button(
-            onClick = onCreate,
+            onClick = {
+                if (groupName.isNotBlank()) {
+                    chatVm.createGroup(
+                        name = groupName.trim(),
+                        description = description.trim().ifBlank { null },
+                        imageUrl = null,
+                        visibility = GroupVisibility.PUBLIC,
+                        selectedUserIds = selectedIds.toList()
+                    )
+                }
+            },
+            enabled = !chatVm.isLoading,
             colors = ButtonDefaults.buttonColors(containerColor = Accent),
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.medium
         ) {
-            Text("Create group", color = Color.White, fontWeight = FontWeight.Bold)
+            if (chatVm.isLoading) {
+                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+            } else {
+                Text("Create group", color = Color.White, fontWeight = FontWeight.Bold)
+            }
+        }
+
+        // Errores de creación (opcional)
+        chatVm.error?.let {
+            Text(text = it, color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
         }
     }
 }
-
-
