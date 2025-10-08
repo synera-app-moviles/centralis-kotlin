@@ -37,4 +37,6 @@ object RetrofitClient {
         retrofit.create(ChatGroupsWebService::class.java)
     }
 
+    val retrofitInstance: Retrofit
+        get() = retrofit
 }

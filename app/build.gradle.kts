@@ -68,6 +68,7 @@ dependencies {
     // Gson Converter: Para convertir JSON automáticamente a objetos Kotlin
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
 
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

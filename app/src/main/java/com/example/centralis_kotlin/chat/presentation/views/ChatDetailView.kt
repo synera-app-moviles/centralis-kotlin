@@ -29,6 +29,9 @@ import com.example.centralis_kotlin.common.SharedPreferencesManager
 import com.example.centralis_kotlin.profile.presentation.viewmodels.ProfileViewModel
 
 // Paleta (igual a la tuya)
+import com.example.centralis_kotlin.chat.domain.models.MessageUI
+
+// Paleta consistente con tus pantallas
 private val Bg = Color(0xFF160F23)
 private val BubbleMine = Color(0xFF8E3DF9)
 private val BubbleOther = Color(0xFF2B1E3F)

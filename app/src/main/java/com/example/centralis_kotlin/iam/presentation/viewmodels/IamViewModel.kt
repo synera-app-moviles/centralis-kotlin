@@ -102,11 +102,11 @@ class IAMViewModel(context: Context) : ViewModel() {
                         val authResponse = response.body()
                         if (authResponse != null) {
                             signUpResult = authResponse
-                            // Opcional: Auto-login después del registro
-                            // authResponse.token?.let { sharedPrefsManager.saveToken(it) }
-                            // sharedPrefsManager.saveUserId(authResponse.id)
-                            // sharedPrefsManager.saveUsername(authResponse.username)
-                            // isLoggedIn = true
+                            // Auto-login después del registro exitoso
+                            authResponse.token?.let { sharedPrefsManager.saveToken(it) }
+                            sharedPrefsManager.saveUserId(authResponse.id)
+                            sharedPrefsManager.saveUsername(authResponse.username)
+                            isLoggedIn = true
                         } else {
                             signUpError = "Respuesta vacía del servidor"
                         }
