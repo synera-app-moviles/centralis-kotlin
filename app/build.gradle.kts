@@ -48,20 +48,7 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    
-    // Material Design 3 - Componentes adicionales
-    implementation("androidx.compose.material3:material3:1.3.2")
-    implementation("androidx.compose.material3:material3-window-size-class:1.3.2")
-    implementation("androidx.compose.material3:material3-adaptive-navigation-suite:1.5.0-alpha04")
-    implementation("androidx.compose.material:material-icons-extended:1.7.5")
-
-    // Jetpack Compose Navigation
-    val nav_version = "2.9.3"
-    implementation("androidx.navigation:navigation-compose:${nav_version}")
-
-    // Glide para Compose: Para cargar imágenes desde URLs
-    implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
-
+    implementation(libs.androidx.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
