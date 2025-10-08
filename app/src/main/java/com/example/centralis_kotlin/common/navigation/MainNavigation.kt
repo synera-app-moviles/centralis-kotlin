@@ -18,6 +18,7 @@ import com.example.centralis_kotlin.chat.presentation.views.CreateGroupView
 import com.example.centralis_kotlin.common.components.BottomNavigationBar
 import com.example.centralis_kotlin.events.presentation.views.AppNavGraph
 import com.example.centralis_kotlin.profile.presentation.views.ProfileView
+import com.example.centralis_kotlin.notification.components.NotificationScreen
 import com.example.centralis_kotlin.announcement.presentation.view.*
 import com.example.centralis_kotlin.chat.presentation.views.ChatDetailView
 import com.example.centralis_kotlin.chat.presentation.views.ChatView
@@ -45,7 +46,7 @@ fun MainNavigation(onLogout: () -> Unit) {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = NavigationRoutes.PROFILE,
+            startDestination = NavigationRoutes.NOTIFICATIONS,
             modifier = Modifier.padding(paddingValues)
         ) {
             // Profile
@@ -158,6 +159,11 @@ fun MainNavigation(onLogout: () -> Unit) {
             composable(NavigationRoutes.ANNOUNCEMENT_CREATE) {
                 CreateAnnouncementScreen(
                     onCreated = { navController.popBackStack() }
+                )
+            }
+            composable(NavigationRoutes.NOTIFICATIONS) {
+                NotificationScreen(
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
         }

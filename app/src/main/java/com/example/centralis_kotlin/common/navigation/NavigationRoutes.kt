@@ -17,6 +17,7 @@ object NavigationRoutes {
     const val PROFILE = "profile"
     const val EVENTS = "events"
     const val CHAT = "chat"
+    const val NOTIFICATIONS = "notifications"
 
     const val CHAT_CREATE = "createChat"
     const val CHAT_DETAIL = "chatDetail/{chatId}"
