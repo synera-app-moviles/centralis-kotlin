@@ -46,7 +46,7 @@ fun MainNavigation(onLogout: () -> Unit) {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = NavigationRoutes.NOTIFICATIONS,
+            startDestination = NavigationRoutes.ANNOUNCEMENTS,
             modifier = Modifier.padding(paddingValues)
         ) {
             // Profile
@@ -133,11 +133,6 @@ fun MainNavigation(onLogout: () -> Unit) {
                     chatId = chatId
                 )
             }
-
-
-
-            composable(NavigationRoutes.ANNOUNCEMENTS) {
-                // TODO: AnnouncementsView(navController) 
 
             // Announcements -> Editar
             composable("${NavigationRoutes.ANNOUNCEMENT_EDIT}/{id}") { backStackEntry ->
