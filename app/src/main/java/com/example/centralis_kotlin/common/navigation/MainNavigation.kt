@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.centralis_kotlin.common.components.BottomNavigationBar
+import com.example.centralis_kotlin.events.presentation.views.AppNavGraph
 import com.example.centralis_kotlin.profile.presentation.views.ProfileView
 import com.example.centralis_kotlin.announcement.presentation.view.*
 
@@ -46,6 +47,15 @@ fun MainNavigation(onLogout: () -> Unit) {
                     onLogout = onLogout
                 )
             }
+            composable(NavigationRoutes.EVENTS) {
+                val eventsNavController = rememberNavController()
+                AppNavGraph(navController = eventsNavController)
+            }
+            composable(NavigationRoutes.CHAT) {
+                // TODO: ChatView(navController)
+            }
+            composable(NavigationRoutes.ANNOUNCEMENTS) {
+                // TODO: AnnouncementsView(navController)
 
             // Events
             composable(NavigationRoutes.EVENTS) {
