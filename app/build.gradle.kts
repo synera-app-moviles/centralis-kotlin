@@ -68,7 +68,19 @@ dependencies {
     // Gson Converter: Para convertir JSON automáticamente a objetos Kotlin
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
 
+    // OkHttp Logging Interceptor: Para debug de peticiones HTTP
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+
+    // Cloudinary para subir imágenes
+    implementation("com.cloudinary:cloudinary-android:2.8.0")
+    
+    // Activity Result API para seleccionar imágenes
+    implementation("androidx.activity:activity-compose:1.9.3")
+    
+    // Para permisos de tiempo de ejecución
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

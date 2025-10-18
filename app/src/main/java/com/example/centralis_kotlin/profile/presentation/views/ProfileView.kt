@@ -30,6 +30,7 @@ import com.example.centralis_kotlin.common.SharedPreferencesManager
 import com.example.centralis_kotlin.profile.models.Position
 import com.example.centralis_kotlin.profile.models.Department
 import com.example.centralis_kotlin.common.components.CustomDropDownMenu
+import com.example.centralis_kotlin.common.components.AvatarImageView
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.text.TextStyle
 
@@ -71,7 +72,7 @@ fun ProfileView(
     var editFirstName by remember { mutableStateOf("") }
     var editLastName by remember { mutableStateOf("") }
     var editEmail by remember { mutableStateOf("") }
-    var editAvatarUrl by remember { mutableStateOf<String?>("") }
+    var editAvatarUrl by remember { mutableStateOf<String?>(null) }
     var editPosition by remember { mutableStateOf<Position?>(Position.EMPLOYEE) }
     var editDepartment by remember { mutableStateOf<Department?>(Department.IT) }
     
@@ -90,7 +91,7 @@ fun ProfileView(
             editFirstName = profile.firstName
             editLastName = profile.lastName
             editEmail = profile.email
-            editAvatarUrl = profile.avatarUrl ?: ""
+            editAvatarUrl = profile.avatarUrl
             editPosition = profile.position
             editDepartment = profile.department
         }
@@ -363,28 +364,29 @@ fun ProfileView(
                                     }
                                 }
                                 
-                                // Avatar URL Text Field
+                                // Avatar Image Selector
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 8.dp)
+                                        .padding(vertical = 8.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Text("Avatar URL", color = Color(0xFFFFFFFF), fontSize = 14.sp)
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .background(
-                                                color = Color(0xFF302149),
-                                                shape = RoundedCornerShape(8.dp)
-                                            )
-                                            .padding(12.dp)
-                                    ) {
-                                        SimpleTextFieldView(
-                                            placeholder = "Enter avatar image URL",
-                                            value = editAvatarUrl ?: "",
-                                            onValueChange = { editAvatarUrl = if (it.isBlank()) null else it }
-                                        )
-                                    }
+                                    Text(
+                                        "Foto de Perfil", 
+                                        color = Color(0xFFFFFFFF), 
+                                        fontSize = 14.sp,
+                                        modifier = Modifier.padding(bottom = 12.dp)
+                                    )
+                                    AvatarImageView(
+                                        imageUrl = editAvatarUrl,
+                                        onImageChange = { newUrl ->
+                                            editAvatarUrl = newUrl
+                                        },
+                                        onImageRemoved = {
+                                            editAvatarUrl = null
+                                        },
+                                        size = 80.dp
+                                    )
                                 }
                                 
                                 // Position Dropdown
