@@ -25,7 +25,7 @@ import com.example.centralis_kotlin.common.SharedPreferencesManager
 import com.example.centralis_kotlin.profile.models.Position
 import com.example.centralis_kotlin.profile.models.Department
 import com.example.centralis_kotlin.common.components.CustomDropDownMenu
-
+/*
 @Composable
 fun TextFieldView(
     placeholder: String,
@@ -49,7 +49,7 @@ fun TextFieldView(
         )
     }
 }
-
+*/
 
 @Composable
 fun SignUpProfile(

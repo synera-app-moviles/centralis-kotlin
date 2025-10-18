@@ -52,7 +52,7 @@ fun <T> CustomDropDownMenu(
         // Dropdown container
         ExposedDropdownMenuBox(
             expanded = expanded,
-            onExpandedChange = { expanded = !expanded },
+            onExpandedChange = { expanded = it },
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
@@ -66,7 +66,6 @@ fun <T> CustomDropDownMenu(
                         shape = RoundedCornerShape(8.dp)
                     )
                     .padding(vertical = 16.dp, horizontal = 16.dp)
-                    .clickable { expanded = !expanded }
             ) {
                 Text(
                     text = selectedOption?.let { getDisplayText(it) } ?: placeholder,
@@ -89,6 +88,7 @@ fun <T> CustomDropDownMenu(
                 onDismissRequest = { expanded = false },
                 modifier = Modifier
                     .background(Color(0xFF302149))
+                    .exposedDropdownSize()
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(
@@ -103,7 +103,9 @@ fun <T> CustomDropDownMenu(
                             onOptionSelected(option)
                             expanded = false
                         },
-                        modifier = Modifier.background(Color(0xFF302149))
+                        colors = MenuDefaults.itemColors(
+                            textColor = Color(0xFFFFFFFF)
+                        )
                     )
                 }
             }
