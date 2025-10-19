@@ -14,3 +14,7 @@
 .cxx
 local.properties
 .idea/
+!app/src/main/res/xml/file_paths.xml
+
+# Firebase config (comentar esta línea si quieres incluir google-services.json en el repo)
+# app/google-services.json

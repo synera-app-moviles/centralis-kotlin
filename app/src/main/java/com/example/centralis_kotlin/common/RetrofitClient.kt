@@ -7,6 +7,7 @@ import com.example.centralis_kotlin.profile.services.ProfileWebService
 import kotlin.getValue
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import com.example.centralis_kotlin.common.network.FCMApiService
 
 
 object RetrofitClient {
@@ -39,4 +40,8 @@ object RetrofitClient {
 
     val retrofitInstance: Retrofit
         get() = retrofit
+
+    val fcmApiService: FCMApiService by lazy {
+        retrofit.create(FCMApiService::class.java)
+    }
 }

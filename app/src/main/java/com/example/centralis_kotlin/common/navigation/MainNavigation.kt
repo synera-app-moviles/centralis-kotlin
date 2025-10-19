@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -18,7 +19,8 @@ import com.example.centralis_kotlin.chat.presentation.views.CreateGroupView
 import com.example.centralis_kotlin.common.components.BottomNavigationBar
 import com.example.centralis_kotlin.events.presentation.views.AppNavGraph
 import com.example.centralis_kotlin.profile.presentation.views.ProfileView
-import com.example.centralis_kotlin.notification.components.NotificationScreen
+import com.example.centralis_kotlin.notification.presentation.screens.NotificationScreen
+import com.example.centralis_kotlin.common.di.DependencyFactory
 import com.example.centralis_kotlin.announcement.presentation.view.*
 import com.example.centralis_kotlin.chat.presentation.views.ChatDetailView
 import com.example.centralis_kotlin.chat.presentation.views.ChatView
@@ -157,8 +159,11 @@ fun MainNavigation(onLogout: () -> Unit) {
                 )
             }
             composable(NavigationRoutes.NOTIFICATIONS) {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val viewModel = remember { DependencyFactory.createNotificationViewModel(context) }
+                
                 NotificationScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    viewModel = viewModel
                 )
             }
         }
