@@ -18,6 +18,12 @@ data class FcmTokenResponse(
     val deviceId: String
 )
 
+data class TestNotificationRequest(
+    val title: String,
+    val message: String,
+    val data: Map<String, String>? = null
+)
+
 interface FCMApiService {
     @POST("api/v1/users/{userId}/fcm-token")
     suspend fun registerFCMToken(
@@ -31,4 +37,11 @@ interface FCMApiService {
         @Path("userId") userId: String,
         @retrofit2.http.Header("Authorization") authorization: String
     ): Response<List<FcmTokenResponse>>
+    
+    @POST("api/v1/users/{userId}/send-test-notification")
+    suspend fun sendTestNotification(
+        @Path("userId") userId: String,
+        @Body body: TestNotificationRequest,
+        @retrofit2.http.Header("Authorization") authorization: String
+    ): Response<Void>
 }

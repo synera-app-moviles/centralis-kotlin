@@ -44,8 +44,12 @@ object DependencyFactory {
     }
     
     fun createNotificationViewModel(context: Context): NotificationViewModel {
+        val sharedPrefs = com.example.centralis_kotlin.common.SharedPreferencesManager(context)
+        val userId = sharedPrefs.getUserId() ?: "test-user-123"
         return NotificationViewModel(
-            notificationRepository = getNotificationRepository(context)
+            notificationRepository = getNotificationRepository(context),
+            currentUserId = userId,
+            context = context
         )
     }
     

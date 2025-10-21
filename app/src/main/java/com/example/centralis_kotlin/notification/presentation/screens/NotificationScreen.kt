@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
 import com.example.centralis_kotlin.common.data.local.entities.NotificationEntity
 import com.example.centralis_kotlin.notification.presentation.viewmodels.NotificationViewModel
 import java.text.SimpleDateFormat
@@ -23,6 +24,7 @@ import java.util.*
 @Composable
 fun NotificationScreen(
     viewModel: NotificationViewModel,
+    navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -38,19 +40,18 @@ fun NotificationScreen(
     Column(
         modifier = modifier.fillMaxSize()
     ) {
-        // Header con título y botón de prueba
+        // Header con título y botón de regreso
         TopAppBar(
             title = { 
                 Text(
                     text = "Notificaciones ${if (uiState.unreadCount > 0) "(${uiState.unreadCount})" else ""}"
                 ) 
             },
-            actions = {
-                // Botón para crear notificación de prueba
-                IconButton(onClick = { viewModel.createTestNotification() }) {
+            navigationIcon = {
+                IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Crear notificación de prueba"
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Regresar"
                     )
                 }
             }
@@ -83,7 +84,7 @@ fun NotificationScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Toca el botón + para crear una de prueba",
+                            text = "Las notificaciones aparecerán aquí cuando las recibas",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

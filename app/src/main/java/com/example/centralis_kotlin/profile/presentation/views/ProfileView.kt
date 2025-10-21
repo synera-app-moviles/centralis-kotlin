@@ -1,7 +1,6 @@
 package com.example.centralis_kotlin.profile.presentation.views
 
 import androidx.compose.runtime.*
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.*
@@ -35,7 +34,11 @@ import com.example.centralis_kotlin.common.components.AvatarImageView
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.text.TextStyle
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 import android.util.Log
+import androidx.compose.material.icons.filled.Notifications
+import java.text.SimpleDateFormat
+import java.util.Date
 
 @Composable
 fun SimpleTextFieldView(
@@ -69,6 +72,7 @@ fun ProfileView(
     val context = LocalContext.current
     val profileViewModel = remember { ProfileViewModel(context) }
     val sharedPrefsManager = remember { SharedPreferencesManager(context) }
+    val coroutineScope = rememberCoroutineScope()
     
     // Estados para el formulario de edición
     var isEditingProfile by remember { mutableStateOf(false) }
@@ -136,41 +140,30 @@ fun ProfileView(
                     modifier = Modifier
                         .fillMaxWidth()
                 ){
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
+                   Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(
-                                color = Color(0xFF160F23),
-                            )
-                            .padding(vertical = 16.dp,)
-                    ){
-                        /*
-                        Column(
-                            modifier = Modifier
-                                .padding(top = 12.dp,bottom = 12.dp,end = 24.dp,)
-                        ){
-                            IconButton(
-                                //Regresa a la pantalla anterior
-                                onClick = { nav.popBackStack() },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ArrowBack,
-                                    contentDescription = "Back",
-                                    tint = Color(0xFFFFFFFF),
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                )
-                            }
-
-                        }*/
-                        Text("Profile",
+                            .background(color = Color(0xFF160F23))
+                            .padding(vertical = 16.dp)
+                    ) {
+                        Text(
+                            "Profile",
                             color = Color(0xFFFFFFFF),
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
+                            modifier = Modifier.align(Alignment.Center)
                         )
-
+                        IconButton(
+                            onClick = { nav.navigate(com.example.centralis_kotlin.common.navigation.NavigationRoutes.NOTIFICATIONS) },
+                            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = "Notifications",
+                                tint = Color(0xFFFFFFFF),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -186,8 +179,6 @@ fun ProfileView(
                         var fcmToken by remember { mutableStateOf<String?>(null) }
                         var tokenRegistered by remember { mutableStateOf<Boolean?>(null) }
 
-                        val coroutineScope = rememberCoroutineScope()
-
                         // Obtener el FCM token al cargar la vista
                         LaunchedEffect(Unit) {
                             try {
@@ -198,46 +189,32 @@ fun ProfileView(
                             }
                         }
 
-                        fun checkTokenRegistration() {
-                            val uid = sharedPrefsManager.getUserId() ?: ""
-                            val currentFcmToken = fcmToken
-                            
-                            Log.d("ProfileView", "🔍 Verificando token registration - userId: $uid, fcmToken: ${currentFcmToken?.take(20)}...")
-                            
-                            if (uid.isEmpty() || currentFcmToken.isNullOrEmpty()) {
-                                Log.w("ProfileView", "❌ No se puede verificar token: userId=$uid, fcmToken=${currentFcmToken}")
-                                tokenRegistered = null
-                                return
-                            }
+        fun checkTokenRegistration() {
+            val uid = sharedPrefsManager.getUserId() ?: ""
+            val currentFcmToken = fcmToken
+            
+            if (uid.isEmpty() || currentFcmToken.isNullOrEmpty()) {
+                tokenRegistered = null
+                return
+            }
 
-                            coroutineScope.launch {
-                                try {
-                                    Log.d("ProfileView", "📡 Llamando GET /users/$uid/fcm-tokens")
-                                    val authToken = sharedPrefsManager.getToken() ?: ""
-                                    val resp = com.example.centralis_kotlin.common.RetrofitClient.fcmApiService.getFCMTokens(uid, "Bearer $authToken")
-                                    
-                                    if (resp.isSuccessful) {
-                                        val tokens = resp.body() ?: emptyList()
-                                        Log.d("ProfileView", "✅ Respuesta exitosa. Tokens encontrados: ${tokens.size}")
-                                        tokens.forEach { token ->
-                                            Log.d("ProfileView", "Token en backend: ${token.fcmToken.take(20)}...")
-                                        }
-                                        
-                                        val isRegistered = tokens.any { it.fcmToken == currentFcmToken }
-                                        tokenRegistered = isRegistered
-                                        Log.d("ProfileView", "🔍 Token registrado: $isRegistered")
-                                    } else {
-                                        Log.e("ProfileView", "❌ Error en respuesta: ${resp.code()} - ${resp.errorBody()?.string()}")
-                                        tokenRegistered = null
-                                    }
-                                } catch (e: Exception) {
-                                    Log.e("ProfileView", "❌ Excepción verificando token", e)
-                                    tokenRegistered = null
-                                }
-                            }
-                        }
-                        
-                        // URL de avatar - usar la del perfil o por defecto si está vacía/null
+            coroutineScope.launch {
+                try {
+                    val authToken = sharedPrefsManager.getToken() ?: ""
+                    val resp = com.example.centralis_kotlin.common.RetrofitClient.fcmApiService.getFCMTokens(uid, "Bearer $authToken")
+                    
+                    if (resp.isSuccessful) {
+                        val tokens = resp.body() ?: emptyList()
+                        val isRegistered = tokens.any { it.fcmToken == currentFcmToken }
+                        tokenRegistered = isRegistered
+                    } else {
+                        tokenRegistered = null
+                    }
+                } catch (e: Exception) {
+                    tokenRegistered = null
+                }
+            }
+        }                        // URL de avatar - usar la del perfil o por defecto si está vacía/null
                         val avatarUrl = if (profile?.avatarUrl.isNullOrEmpty()) {
                             "https://i.pinimg.com/736x/e5/c1/c3/e5c1c34fe65d23b9a876b3dcdfd27ba7.jpg"
                         } else {
@@ -286,90 +263,7 @@ fun ProfileView(
                                             fontSize = 16.sp,
                                         )
                                     }
-                                    
-                                    // Posición y Departamento
-                                    Column(
-                                        modifier = Modifier
-                                            .padding(horizontal = 4.dp,)
-                                            .padding(bottom = 1.dp,)
-                                            .align(Alignment.CenterHorizontally)
-                                    ){
-                                        Text(
-                                            text = "${profile?.position?.displayName ?: Position.EMPLOYEE.displayName} - ${profile?.department?.displayName ?: Department.IT.displayName}",
-                                            color = Color(0xFFA88ECC),
-                                            fontSize = 16.sp,
-                                        )
-                                    }
-                                    // STATUS: FCM token y registro
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(top = 12.dp)
-                                            .align(Alignment.CenterHorizontally),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        val displayToken = fcmToken ?: "Cargando token..."
-                                        Text(
-                                            text = "FCM Token: ${if (displayToken.length > 30) displayToken.take(30) + "..." else displayToken}",
-                                            color = Color(0xFFFFFFFF),
-                                            fontSize = 12.sp
-                                        )
 
-                                        val statusText = when (tokenRegistered) {
-                                            true -> "Token registrado en backend ✅"
-                                            false -> "Token NO registrado en backend ❌"
-                                            null -> "Estado de token desconocido"
-                                        }
-
-                                        Text(
-                                            text = statusText,
-                                            color = if (tokenRegistered == true) Color(0xFF42F56C) else Color(0xFFFFC107),
-                                            fontSize = 14.sp,
-                                            modifier = Modifier.padding(top = 6.dp)
-                                        )
-
-                                        OutlinedButton(
-                                            onClick = { checkTokenRegistration() },
-                                            modifier = Modifier.padding(top = 8.dp)
-                                        ) {
-                                            Text(text = "Refresh token status")
-                                        }
-                                        
-                                        // Botón para registrar token manualmente
-                                        OutlinedButton(
-                                            onClick = { 
-                                                val uid = sharedPrefsManager.getUserId() ?: ""
-                                                val currentFcmToken = fcmToken
-                                                if (uid.isNotEmpty() && !currentFcmToken.isNullOrEmpty()) {
-                                                    coroutineScope.launch {
-                                                        try {
-                                                            Log.d("ProfileView", "📤 Registrando token manualmente para userId=$uid")
-                                                            val api = com.example.centralis_kotlin.common.RetrofitClient.fcmApiService
-                                                            val request = com.example.centralis_kotlin.common.network.FcmTokenRequest(
-                                                                fcmToken = currentFcmToken,
-                                                                deviceType = "Android",
-                                                                deviceId = android.provider.Settings.Secure.getString(context.contentResolver, android.provider.Settings.Secure.ANDROID_ID)
-                                                            )
-                                                            val authToken = sharedPrefsManager.getToken() ?: ""
-                                                            val response = api.registerFCMToken(uid, request, "Bearer $authToken")
-                                                            if (response.isSuccessful) {
-                                                                Log.d("ProfileView", "✅ Token registrado manualmente")
-                                                                // Verificar inmediatamente después del registro
-                                                                checkTokenRegistration()
-                                                            } else {
-                                                                Log.e("ProfileView", "❌ Error registrando token: ${response.code()}")
-                                                            }
-                                                        } catch (e: Exception) {
-                                                            Log.e("ProfileView", "❌ Excepción registrando token", e)
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            modifier = Modifier.padding(top = 4.dp)
-                                        ) {
-                                            Text(text = "Register token manually")
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -619,6 +513,17 @@ fun ProfileView(
                             onClick = {
                                 // Limpiar datos del perfil y logout
                                 profileViewModel.clearResults()
+                                
+                                // Limpiar token FCM del dispositivo
+                                coroutineScope.launch {
+                                    try {
+                                        val deviceTokenManager = com.example.centralis_kotlin.common.di.DependencyFactory.getDeviceTokenManager(context)
+                                        deviceTokenManager.clearToken()
+                                    } catch (e: Exception) {
+                                        // Error silencioso
+                                    }
+                                }
+                                
                                 sharedPrefsManager.clearAll()
                                 onLogout()
                             },

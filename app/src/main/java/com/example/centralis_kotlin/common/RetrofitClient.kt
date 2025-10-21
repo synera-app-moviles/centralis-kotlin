@@ -8,6 +8,7 @@ import kotlin.getValue
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import com.example.centralis_kotlin.common.network.FCMApiService
+import com.example.centralis_kotlin.common.network.NotificationApiService
 
 
 object RetrofitClient {
@@ -15,7 +16,7 @@ object RetrofitClient {
     // Cliente Retrofit unificado (reutilizable para ambos contextos)
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl("https://web-services-yezo.onrender.com/")
+            .baseUrl("https://web-services-okt8.onrender.com/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -43,5 +44,9 @@ object RetrofitClient {
 
     val fcmApiService: FCMApiService by lazy {
         retrofit.create(FCMApiService::class.java)
+    }
+    
+    val notificationApiService: NotificationApiService by lazy {
+        retrofit.create(NotificationApiService::class.java)
     }
 }

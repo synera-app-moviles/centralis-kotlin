@@ -163,7 +163,8 @@ fun MainNavigation(onLogout: () -> Unit) {
                 val viewModel = remember { DependencyFactory.createNotificationViewModel(context) }
                 
                 NotificationScreen(
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    navController = navController
                 )
             }
         }

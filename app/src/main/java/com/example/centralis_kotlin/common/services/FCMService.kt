@@ -30,8 +30,6 @@ class FCMService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
         
-        Log.d("FCMService", "FCM Message received: ${remoteMessage.data}")
-        
         // Guardar notificación en Room Database
         saveNotificationToDatabase(remoteMessage)
         
@@ -44,7 +42,6 @@ class FCMService : FirebaseMessagingService() {
     
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        Log.d("FCMService", "New FCM Token: $token")
         
         // Guardar token localmente
         val tokenManager = DependencyFactory.getDeviceTokenManager(this)
@@ -59,25 +56,32 @@ class FCMService : FirebaseMessagingService() {
             try {
                 val repository = DependencyFactory.getNotificationRepository(this@FCMService)
                 
+                // Obtener el userId actual del usuario logueado
+                val sharedPrefs = com.example.centralis_kotlin.common.SharedPreferencesManager(this@FCMService)
+                val currentUserId = sharedPrefs.getUserId() ?: "unknown"
+                
                 val notification = NotificationEntity(
-                    id = remoteMessage.messageId ?: System.currentTimeMillis().toString(),
-                    userId = remoteMessage.data["userId"] ?: "unknown",
+                    id = remoteMessage.messageId ?: "fcm-${System.currentTimeMillis()}",
+                    userId = currentUserId, // Usar el userId del usuario actual logueado
                     title = remoteMessage.notification?.title ?: "Sin título",
                     message = remoteMessage.notification?.body ?: "Sin mensaje",
-                    type = remoteMessage.data["type"] ?: "GENERAL",
+                    type = remoteMessage.data["type"] ?: "FCM",
                     timestamp = System.currentTimeMillis(),
                     isRead = false,
-                    priority = remoteMessage.data["priority"]?.toIntOrNull() ?: 0,
+                    priority = when (remoteMessage.data["priority"]?.uppercase()) {
+                        "HIGH", "URGENT" -> 2
+                        "MEDIUM" -> 1
+                        else -> 0
+                    },
                     fcmMessageId = remoteMessage.messageId,
                     imageUrl = remoteMessage.notification?.imageUrl?.toString(),
                     actionUrl = remoteMessage.data["actionUrl"]
                 )
                 
                 repository.insertNotification(notification)
-                Log.d("FCMService", "✅ Notificación guardada en Room Database")
                 
             } catch (e: Exception) {
-                Log.e("FCMService", "❌ Error guardando notificación en database", e)
+                // Error silencioso - la notificación al menos se muestra en el sistema
             }
         }
     }
@@ -98,6 +102,9 @@ class FCMService : FirebaseMessagingService() {
             .setContentText(message)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
         
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
@@ -108,9 +115,13 @@ class FCMService : FirebaseMessagingService() {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 "Notificaciones Centralis",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Canal para notificaciones de la app Centralis"
+                enableLights(true)
+                lightColor = android.graphics.Color.BLUE
+                enableVibration(true)
+                setShowBadge(true)
             }
             
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -121,12 +132,9 @@ class FCMService : FirebaseMessagingService() {
     private fun sendTokenToServer(token: String) {
         serviceScope.launch {
             try {
-                Log.d("FCMService", "📤 Token a enviar al backend: $token")
-
                 // Intentar registrar el token usando el cliente Retrofit central
                 val userId = com.example.centralis_kotlin.common.SharedPreferencesManager(this@FCMService).getUserId()
                 if (userId.isNullOrEmpty()) {
-                    Log.w("FCMService", "No hay userId disponible, posponer registro del token")
                     return@launch
                 }
 
@@ -139,15 +147,10 @@ class FCMService : FirebaseMessagingService() {
 
                 val sharedPrefs = com.example.centralis_kotlin.common.SharedPreferencesManager(this@FCMService)
                 val authToken = sharedPrefs.getToken() ?: ""
-                val response = api.registerFCMToken(userId, request, "Bearer $authToken")
-                if (response.isSuccessful) {
-                    Log.d("FCMService", "✅ Token registrado en backend para userId=$userId")
-                } else {
-                    Log.e("FCMService", "❌ Registro de token falló: ${response.code()} - ${response.errorBody()?.string()}")
-                }
+                api.registerFCMToken(userId, request, "Bearer $authToken")
                 
             } catch (e: Exception) {
-                Log.e("FCMService", "❌ Error enviando token al servidor", e)
+                // Error silencioso - el token se reintentará en el siguiente login
             }
         }
     }
