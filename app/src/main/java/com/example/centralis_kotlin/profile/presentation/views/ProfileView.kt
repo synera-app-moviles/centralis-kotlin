@@ -33,6 +33,12 @@ import com.example.centralis_kotlin.common.components.CustomDropDownMenu
 import com.example.centralis_kotlin.common.components.AvatarImageView
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.text.TextStyle
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
+import android.util.Log
+import androidx.compose.material.icons.filled.Notifications
+import java.text.SimpleDateFormat
+import java.util.Date
 
 @Composable
 fun SimpleTextFieldView(
@@ -66,6 +72,7 @@ fun ProfileView(
     val context = LocalContext.current
     val profileViewModel = remember { ProfileViewModel(context) }
     val sharedPrefsManager = remember { SharedPreferencesManager(context) }
+    val coroutineScope = rememberCoroutineScope()
     
     // Estados para el formulario de edición
     var isEditingProfile by remember { mutableStateOf(false) }
@@ -133,41 +140,30 @@ fun ProfileView(
                     modifier = Modifier
                         .fillMaxWidth()
                 ){
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
+                   Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(
-                                color = Color(0xFF160F23),
-                            )
-                            .padding(vertical = 16.dp,)
-                    ){
-                        /*
-                        Column(
-                            modifier = Modifier
-                                .padding(top = 12.dp,bottom = 12.dp,end = 24.dp,)
-                        ){
-                            IconButton(
-                                //Regresa a la pantalla anterior
-                                onClick = { nav.popBackStack() },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ArrowBack,
-                                    contentDescription = "Back",
-                                    tint = Color(0xFFFFFFFF),
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                )
-                            }
-
-                        }*/
-                        Text("Profile",
+                            .background(color = Color(0xFF160F23))
+                            .padding(vertical = 16.dp)
+                    ) {
+                        Text(
+                            "Profile",
                             color = Color(0xFFFFFFFF),
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
+                            modifier = Modifier.align(Alignment.Center)
                         )
-
+                        IconButton(
+                            onClick = { nav.navigate(com.example.centralis_kotlin.common.navigation.NavigationRoutes.NOTIFICATIONS) },
+                            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = "Notifications",
+                                tint = Color(0xFFFFFFFF),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -179,9 +175,46 @@ fun ProfileView(
                         val profile = profileViewModel.currentProfile
                         val username = sharedPrefsManager.getUsername() ?: "Usuario"
                         val userId = sharedPrefsManager.getUserId() ?: ""
-                        val token = sharedPrefsManager.getToken() ?: "NO_TOKEN"
-                        
-                        // URL de avatar - usar la del perfil o por defecto si está vacía/null
+                        val authToken = sharedPrefsManager.getToken() ?: "NO_TOKEN"
+                        var fcmToken by remember { mutableStateOf<String?>(null) }
+                        var tokenRegistered by remember { mutableStateOf<Boolean?>(null) }
+
+                        // Obtener el FCM token al cargar la vista
+                        LaunchedEffect(Unit) {
+                            try {
+                                val tokenManager = com.example.centralis_kotlin.common.di.DependencyFactory.getDeviceTokenManager(context)
+                                fcmToken = tokenManager.getStoredToken()
+                            } catch (e: Exception) {
+                                fcmToken = "ERROR_GETTING_TOKEN"
+                            }
+                        }
+
+        fun checkTokenRegistration() {
+            val uid = sharedPrefsManager.getUserId() ?: ""
+            val currentFcmToken = fcmToken
+            
+            if (uid.isEmpty() || currentFcmToken.isNullOrEmpty()) {
+                tokenRegistered = null
+                return
+            }
+
+            coroutineScope.launch {
+                try {
+                    val authToken = sharedPrefsManager.getToken() ?: ""
+                    val resp = com.example.centralis_kotlin.common.RetrofitClient.fcmApiService.getFCMTokens(uid, "Bearer $authToken")
+                    
+                    if (resp.isSuccessful) {
+                        val tokens = resp.body() ?: emptyList()
+                        val isRegistered = tokens.any { it.fcmToken == currentFcmToken }
+                        tokenRegistered = isRegistered
+                    } else {
+                        tokenRegistered = null
+                    }
+                } catch (e: Exception) {
+                    tokenRegistered = null
+                }
+            }
+        }                        // URL de avatar - usar la del perfil o por defecto si está vacía/null
                         val avatarUrl = if (profile?.avatarUrl.isNullOrEmpty()) {
                             "https://i.pinimg.com/736x/e5/c1/c3/e5c1c34fe65d23b9a876b3dcdfd27ba7.jpg"
                         } else {
@@ -230,20 +263,7 @@ fun ProfileView(
                                             fontSize = 16.sp,
                                         )
                                     }
-                                    
-                                    // Posición y Departamento
-                                    Column(
-                                        modifier = Modifier
-                                            .padding(horizontal = 4.dp,)
-                                            .padding(bottom = 1.dp,)
-                                            .align(Alignment.CenterHorizontally)
-                                    ){
-                                        Text(
-                                            text = "${profile?.position?.displayName ?: Position.EMPLOYEE.displayName} - ${profile?.department?.displayName ?: Department.IT.displayName}",
-                                            color = Color(0xFFA88ECC),
-                                            fontSize = 16.sp,
-                                        )
-                                    }
+
                                 }
                             }
                         }
@@ -493,6 +513,17 @@ fun ProfileView(
                             onClick = {
                                 // Limpiar datos del perfil y logout
                                 profileViewModel.clearResults()
+                                
+                                // Limpiar token FCM del dispositivo
+                                coroutineScope.launch {
+                                    try {
+                                        val deviceTokenManager = com.example.centralis_kotlin.common.di.DependencyFactory.getDeviceTokenManager(context)
+                                        deviceTokenManager.clearToken()
+                                    } catch (e: Exception) {
+                                        // Error silencioso
+                                    }
+                                }
+                                
                                 sharedPrefsManager.clearAll()
                                 onLogout()
                             },

@@ -57,12 +57,14 @@ object CloudinaryConfig {
                 transformation = AVATAR_SIZE,
                 maxSize = AVATAR_MAX_SIZE
             )
+
             ImageType.CHAT -> ImageConfig(
                 uploadPreset = CHAT_UPLOAD_PRESET,
                 folder = CHAT_FOLDER,
                 transformation = CHAT_SIZE,
                 maxSize = CHAT_MAX_SIZE
             )
+
             ImageType.ANNOUNCEMENT -> ImageConfig(
                 uploadPreset = ANNOUNCEMENT_UPLOAD_PRESET,
                 folder = ANNOUNCEMENT_FOLDER,
