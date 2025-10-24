@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.centralis_kotlin.chat.domain.models.*
+import com.example.centralis_kotlin.chat.services.SseService
 import com.example.centralis_kotlin.common.RetrofitClient
 import com.example.centralis_kotlin.common.SharedPreferencesManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.getValue
@@ -22,6 +24,7 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
     private val msgsWebService = RetrofitClient.chatMessagesWebService
     private val prefs = SharedPreferencesManager(context)
     private val profileWs = RetrofitClient.profileWebService
+    private val sseService = SseService()
     val currentUserId: String? = prefs.getUserId()
     val profiles = mutableStateMapOf<String, ProfileResponse>()
 
@@ -29,6 +32,9 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
     var isLoading by mutableStateOf(false)
     var sending by mutableStateOf(false)
     var error: String? by mutableStateOf(null)
+    
+    // SSE connection state
+    val connectionState: StateFlow<SseConnectionState> = sseService.connectionState
 
 
     fun profileOf(userId: String): ProfileResponse? = profiles[userId]
@@ -57,6 +63,9 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
                         coroutineScope {
                             uniqueSenders.map { uid -> async { ensureProfile(uid, tok) } }.forEach { it.await() }
                         }
+                        
+                        // Conectar a SSE para recibir mensajes en tiempo real
+                        setupSseConnection(groupId)
                     } else {
                         error = "Error ${resp.code()}: ${resp.message()}"
                         if (resp.code() == 401) prefs.clearAll()
@@ -154,5 +163,62 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
                 withContext(Dispatchers.Main) { error = "Error de conexión: ${e.message}" }
             }
         }
+    }
+    
+    /**
+     * Configura la conexión SSE y escucha mensajes en tiempo real
+     */
+    private fun setupSseConnection(groupId: String) {
+        val userId = currentUserId ?: return
+        val token = prefs.getToken() ?: return
+        
+        // Conectar a SSE con token de autenticación
+        sseService.connectToGroup(groupId, userId, token)
+        
+        // Observar mensajes en tiempo real
+        viewModelScope.launch {
+            sseService.messageFlow.collect { sseMessage ->
+                withContext(Dispatchers.Main) {
+                    // Solo agregar si el mensaje no es del usuario actual (evitar duplicados)
+                    if (sseMessage.senderId != currentUserId) {
+                        // Convertir SseMessage a MessageResponse
+                        val messageResponse = MessageResponse(
+                            messageId = sseMessage.messageId,
+                            groupId = sseMessage.groupId,
+                            senderId = sseMessage.senderId,
+                            body = sseMessage.body,
+                            status = MessageStatus.SENT,
+                            sentAt = sseMessage.sentAt,
+                            editedAt = null
+                        )
+                        
+                        // Agregar mensaje a la lista
+                        messages = messages + messageResponse
+                        
+                        // Asegurar que tenemos el perfil del sender
+                        val token = prefs.getToken().orEmpty()
+                        ensureProfile(sseMessage.senderId, token)
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Reintentar conexión SSE
+     */
+    fun retryConnection() {
+        val (groupId, userId, token) = sseService.getCurrentConnectionInfo()
+        if (groupId != null && userId != null && token != null) {
+            sseService.connectToGroup(groupId, userId, token)
+        }
+    }
+    
+    /**
+     * Cleanup de recursos SSE
+     */
+    override fun onCleared() {
+        super.onCleared()
+        sseService.disconnect()
     }
 }

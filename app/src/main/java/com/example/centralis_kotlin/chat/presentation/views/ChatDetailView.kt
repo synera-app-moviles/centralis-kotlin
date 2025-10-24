@@ -30,6 +30,7 @@ import com.example.centralis_kotlin.profile.presentation.viewmodels.ProfileViewM
 
 // Paleta (igual a la tuya)
 import com.example.centralis_kotlin.chat.domain.models.MessageUI
+import com.example.centralis_kotlin.chat.domain.models.SseConnectionState
 
 // Paleta consistente con tus pantallas
 private val Bg = Color(0xFF160F23)
@@ -57,6 +58,7 @@ fun ChatDetailView(
     val isLoading = vm.isLoading
     val sending = vm.sending
     val error = vm.error
+    val connectionState by vm.connectionState.collectAsState()
 
 
 
@@ -92,13 +94,42 @@ fun ChatDetailView(
             Spacer(Modifier.width(10.dp))
 
 
-            Text(
-                text = "Chat", // o pásalo por parámetro si lo tienes
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                modifier = Modifier.weight(1f)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Chat", // o pásalo por parámetro si lo tienes
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp
+                )
+                // Indicador de estado de conexión SSE
+                Text(
+                    text = when (connectionState) {
+                        is SseConnectionState.Connected -> "🟢 Conectado"
+                        is SseConnectionState.Connecting -> "🟡 Conectando..."
+                        is SseConnectionState.Reconnecting -> "🟠 Reconectando..."
+                        is SseConnectionState.Disconnected -> "🔴 Desconectado"
+                        is SseConnectionState.Error -> "❌ Error de conexión"
+                        else -> "Estado desconocido"
+                    },
+                    color = when (connectionState) {
+                        is SseConnectionState.Connected -> Color(0xFF4CAF50)
+                        is SseConnectionState.Error, is SseConnectionState.Disconnected -> Color(0xFFFF5252)
+                        else -> Muted
+                    },
+                    fontSize = 11.sp
+                )
+            }
+
+            // Botón de reintentar si hay error de conexión
+            if (connectionState is SseConnectionState.Error) {
+                IconButton(onClick = { vm.retryConnection() }) {
+                    Icon(
+                        imageVector = Icons.Default.Send, // Usar un icono de refresh si tienes
+                        contentDescription = "Reintentar conexión",
+                        tint = Color(0xFFFF5252)
+                    )
+                }
+            }
 
             IconButton(onClick = { /* menú overflow */ }) {
                 Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.White)
