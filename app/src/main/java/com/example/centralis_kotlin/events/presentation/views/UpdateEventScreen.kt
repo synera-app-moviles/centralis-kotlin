@@ -1,36 +1,41 @@
 package com.example.centralis_kotlin.events.presentation.views
 
-import com.example.centralis_kotlin.events.model.CreateEventRequest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.centralis_kotlin.events.model.UpdateEventRequest
 import com.example.centralis_kotlin.ui.theme.CentralisOnPrimary
 import com.example.centralis_kotlin.ui.theme.CentralisPrimary
-
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateEventScreen(
-    onCreate: (CreateEventRequest) -> Unit,
-    onCancel: () -> Unit
+fun UpdateEventScreen(
+    eventId: UUID,
+    currentTitle: String,
+    currentDescription: String,
+    currentDateTime: String,
+    currentLocation: String?,
+    onUpdate: (UUID, UpdateEventRequest) -> Unit,
+    onBack: () -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var dateTime by remember { mutableStateOf("") }
-    var location by remember { mutableStateOf("") }
+    var title by remember { mutableStateOf(currentTitle) }
+    var description by remember { mutableStateOf(currentDescription) }
+    var dateTime by remember { mutableStateOf(currentDateTime) }
+    var location by remember { mutableStateOf(currentLocation ?: "") }
+
 
     fun toIsoLike(input: String): String {
-
         val trimmed = input.trim()
         if (trimmed.isEmpty()) return trimmed
         return if (trimmed.contains(' ')) {
@@ -39,7 +44,6 @@ fun CreateEventScreen(
         } else if (trimmed.contains('T')) {
             if (trimmed.length <= 16) "$trimmed:00" else trimmed
         } else {
-            // devolver tal cual si no coincide con formato esperado
             trimmed
         }
     }
@@ -53,8 +57,8 @@ fun CreateEventScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "Create Event",
-                            color = androidx.compose.ui.graphics.Color.White,
+                            "Update Event",
+                            color = Color.White,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.offset(x = (-24).dp)
@@ -62,25 +66,25 @@ fun CreateEventScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onCancel) {
+                    IconButton(onClick = onBack) {
                         Icon(
-                            Icons.Default.Close,
-                            contentDescription = "Cancel",
-                            tint = androidx.compose.ui.graphics.Color.White
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = androidx.compose.ui.graphics.Color(0xFF170F24)
+                    containerColor = Color(0xFF170F24)
                 )
             )
         },
-        containerColor = androidx.compose.ui.graphics.Color(0xFF170F24)
+        containerColor = Color(0xFF170F24)
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(androidx.compose.ui.graphics.Color(0xFF170F24))
+                .background(Color(0xFF170F24))
         ) {
             Column(
                 modifier = Modifier
@@ -92,14 +96,14 @@ fun CreateEventScreen(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Event title", color = androidx.compose.ui.graphics.Color(0xFFA68FCC)) },
+                    label = { Text("Event title", color = Color(0xFFA68FCC)) },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = androidx.compose.ui.graphics.Color(0xFF30214A),
-                        unfocusedContainerColor = androidx.compose.ui.graphics.Color(0xFF30214A),
-                        focusedTextColor = androidx.compose.ui.graphics.Color(0xFFA68FCC),
-                        unfocusedTextColor = androidx.compose.ui.graphics.Color(0xFFA68FCC),
-                        focusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
-                        unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent
+                        focusedContainerColor = Color(0xFF30214A),
+                        unfocusedContainerColor = Color(0xFF30214A),
+                        focusedTextColor = Color(0xFFA68FCC),
+                        unfocusedTextColor = Color(0xFFA68FCC),
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -107,14 +111,14 @@ fun CreateEventScreen(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Event description", color = androidx.compose.ui.graphics.Color(0xFFA68FCC)) },
+                    label = { Text("Event description", color = Color(0xFFA68FCC)) },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = androidx.compose.ui.graphics.Color(0xFF30214A),
-                        unfocusedContainerColor = androidx.compose.ui.graphics.Color(0xFF30214A),
-                        focusedTextColor = androidx.compose.ui.graphics.Color(0xFFA68FCC),
-                        unfocusedTextColor = androidx.compose.ui.graphics.Color(0xFFA68FCC),
-                        focusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
-                        unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent
+                        focusedContainerColor = Color(0xFF30214A),
+                        unfocusedContainerColor = Color(0xFF30214A),
+                        focusedTextColor = Color(0xFFA68FCC),
+                        unfocusedTextColor = Color(0xFFA68FCC),
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -125,21 +129,21 @@ fun CreateEventScreen(
                 OutlinedTextField(
                     value = dateTime,
                     onValueChange = { dateTime = it },
-                    label = { Text("Date and Time", color = androidx.compose.ui.graphics.Color(0xFFA68FCC)) },
+                    label = { Text("Date and time", color = Color(0xFFA68FCC)) },
                     trailingIcon = {
                         Icon(
                             Icons.Default.CalendarToday,
                             contentDescription = null,
-                            tint = androidx.compose.ui.graphics.Color(0xFFA68FCC)
+                            tint = Color(0xFFA68FCC)
                         )
                     },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = androidx.compose.ui.graphics.Color(0xFF30214A),
-                        unfocusedContainerColor = androidx.compose.ui.graphics.Color(0xFF30214A),
-                        focusedTextColor = androidx.compose.ui.graphics.Color(0xFFA68FCC),
-                        unfocusedTextColor = androidx.compose.ui.graphics.Color(0xFFA68FCC),
-                        focusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
-                        unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent
+                        focusedContainerColor = Color(0xFF30214A),
+                        unfocusedContainerColor = Color(0xFF30214A),
+                        focusedTextColor = Color(0xFFA68FCC),
+                        unfocusedTextColor = Color(0xFFA68FCC),
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -147,14 +151,14 @@ fun CreateEventScreen(
                 OutlinedTextField(
                     value = location,
                     onValueChange = { location = it },
-                    label = { Text("Location", color = androidx.compose.ui.graphics.Color(0xFFA68FCC)) },
+                    label = { Text("Location", color = Color(0xFFA68FCC)) },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = androidx.compose.ui.graphics.Color(0xFF30214A),
-                        unfocusedContainerColor = androidx.compose.ui.graphics.Color(0xFF30214A),
-                        focusedTextColor = androidx.compose.ui.graphics.Color(0xFFA68FCC),
-                        unfocusedTextColor = androidx.compose.ui.graphics.Color(0xFFA68FCC),
-                        focusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
-                        unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent
+                        focusedContainerColor = Color(0xFF30214A),
+                        unfocusedContainerColor = Color(0xFF30214A),
+                        focusedTextColor = Color(0xFFA68FCC),
+                        unfocusedTextColor = Color(0xFFA68FCC),
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -163,17 +167,20 @@ fun CreateEventScreen(
 
                 Button(
                     onClick = {
-                        val formattedDate = toIsoLike(dateTime)
-                        val userId = UUID.randomUUID()
-                        val request = CreateEventRequest(
+                        val formattedDate = try {
+                            toIsoLike(dateTime)
+                        } catch (e: Exception) {
+                            dateTime
+                        }
+
+                        val request = UpdateEventRequest(
                             title = title,
                             description = description,
                             date = formattedDate,
                             location = location.ifBlank { null },
-                            recipientIds = listOf(userId),
-                            createdBy = userId
+                            recipientIds = null
                         )
-                        onCreate(request)
+                        onUpdate(eventId, request)
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = CentralisPrimary),
                     modifier = Modifier
@@ -182,7 +189,7 @@ fun CreateEventScreen(
                     shape = MaterialTheme.shapes.medium
                 ) {
                     Text(
-                        "Create Event",
+                        "Update Event",
                         color = CentralisOnPrimary,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold

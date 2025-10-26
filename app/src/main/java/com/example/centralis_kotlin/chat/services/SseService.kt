@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit
  * Service for managing SSE connections for real-time chat
  */
 class SseService(
-    private val baseUrl: String = "https://web-services-okt8.onrender.com" // Your backend URL
+    private val baseUrl: String = "http://192.168.1.45:8080" // Your backend URL
 ) {
     companion object {
         private const val TAG = "SseService"
