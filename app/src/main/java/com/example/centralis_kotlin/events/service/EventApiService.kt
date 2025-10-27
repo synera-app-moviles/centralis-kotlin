@@ -9,11 +9,6 @@ import java.util.UUID
 
 interface EventApiService {
     @GET("api/v1/events")
-    suspend fun getAllEvents(
-        @Header("Authorization") authorization: String
-    ): Response<List<EventResponse>>
-
-    @GET("api/v1/events")
     suspend fun getEvents(
         @Header("Authorization") authorization: String,
         @Query("userId") userId: UUID? = null,

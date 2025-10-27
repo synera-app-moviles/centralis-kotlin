@@ -84,7 +84,12 @@ class EventRepositoryImpl @Inject constructor(
 
     override suspend fun getAllEvents(): Result<List<Event>> {
         return try {
-            val response = eventApiService.getAllEvents(getAuthHeader())
+
+            val response = eventApiService.getEvents(
+                authorization = getAuthHeader(),
+                userId = null,
+                filterType = null
+            )
             if (response.isSuccessful && response.body() != null) {
                 val events = response.body()!!.map { eventResponse ->
                     Event(

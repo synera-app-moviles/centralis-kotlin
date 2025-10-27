@@ -63,6 +63,8 @@ dependencies {
 
     // Glide para Compose: Para cargar imágenes desde URLs
     implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
 
     // Retrofit: Para hacer peticiones HTTP a APIs
     implementation("com.squareup.retrofit2:retrofit:2.11.0")

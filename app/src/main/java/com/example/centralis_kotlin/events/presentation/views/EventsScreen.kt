@@ -23,6 +23,7 @@ import com.example.centralis_kotlin.common.RetrofitClient
 import com.example.centralis_kotlin.common.SharedPreferencesManager
 import com.example.centralis_kotlin.events.model.EventResponse
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 private fun formatDateSafe(dateObj: Any?): String {
     return try {
@@ -45,6 +46,7 @@ fun EventsScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    // Dentro de la función loadEvents() en EventsScreen.kt
     fun loadEvents() {
         isLoading = true
         error = null
@@ -52,13 +54,27 @@ fun EventsScreen(
             try {
                 val token = SharedPreferencesManager(context).getToken()
                 val authHeader = "Bearer $token"
-                val response = RetrofitClient.eventApiService.getAllEvents(authHeader)
+                val userIdStr = SharedPreferencesManager(context).getUserId()
+                val currentUserId = UUID.fromString(userIdStr)
 
-                if (response.isSuccessful) {
-                    events = response.body() ?: emptyList()
-                } else {
-                    error = "Error: ${response.code()}"
-                }
+                // Obtener eventos donde el usuario es participante
+                val recipientResponse = RetrofitClient.eventApiService.getEvents(
+                    authorization = authHeader,
+                    userId = currentUserId,
+                    filterType = "recipient"
+                )
+                // Obtener eventos donde el usuario es creador
+                val creatorResponse = RetrofitClient.eventApiService.getEvents(
+                    authorization = authHeader,
+                    userId = currentUserId,
+                    filterType = "creator"
+                )
+
+                val recipientEvents = recipientResponse.body() ?: emptyList()
+                val creatorEvents = creatorResponse.body() ?: emptyList()
+
+                // Unir y eliminar duplicados por id
+                events = (recipientEvents + creatorEvents).distinctBy { it.id }
             } catch (e: Exception) {
                 error = "Error de conexión: ${e.message}"
             } finally {
