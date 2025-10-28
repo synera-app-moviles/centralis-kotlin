@@ -2,6 +2,7 @@
 
 package com.example.centralis_kotlin.announcement.presentation.view
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,16 +12,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.centralis_kotlin.announcement.data.AppDatabase
+import com.example.centralis_kotlin.announcement.data.LocalAnnouncementRepository
 import com.example.centralis_kotlin.announcement.model.Priority
 import com.example.centralis_kotlin.announcement.presentation.viewmodels.AnnouncementViewModel
 import com.example.centralis_kotlin.common.navigation.NavigationRoutes
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun AnnouncementListScreen(
@@ -34,16 +41,35 @@ fun AnnouncementListScreen(
         vm.loadAnnouncements()
     }
 
+    val context = LocalContext.current
+    val db = remember { AppDatabase.getDatabase(context) }
+    val localRepo = remember { LocalAnnouncementRepository(db.announcementDao()) }
+    val coroutineScope = rememberCoroutineScope()
+
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        "Announcements",
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
+                title = { Text("Announcements", color = MaterialTheme.colorScheme.onBackground) },
+                actions = {
+                    // Botón de guardar localmente
+                    IconButton(onClick = {
+                        coroutineScope.launch {
+                            announcementsState.forEach { announcement ->
+                                localRepo.saveAnnouncement(announcement)
+                            }
+                            Toast.makeText(context, "Anuncios guardados localmente", Toast.LENGTH_SHORT).show()
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Download,
+                            contentDescription = "Guardar localmente",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
 
+                    
+                }
             )
         },
         floatingActionButton = {

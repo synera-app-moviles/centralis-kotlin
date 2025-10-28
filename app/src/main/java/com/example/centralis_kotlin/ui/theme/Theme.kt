@@ -41,7 +41,8 @@ private val CentralisLightColorScheme = lightColorScheme(
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
-    tertiary = Pink80
+    tertiary = Pink80,
+    background = CentralisSecondary,
 )
 
 private val LightColorScheme = lightColorScheme(
