@@ -3,6 +3,8 @@ package com.example.centralis_kotlin.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // Colores originales de Material 3
+
+
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)

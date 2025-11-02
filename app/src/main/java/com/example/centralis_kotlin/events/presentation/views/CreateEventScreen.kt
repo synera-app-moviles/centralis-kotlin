@@ -49,7 +49,7 @@ package com.example.centralis_kotlin.events.presentation.views
          val trimmed = input.trim()
          if (trimmed.isEmpty()) return trimmed
          return if (trimmed.contains(' ')) {
-             val t = trimmed.replace(' ', 'T')
+             val t = trimmed.replace(' ', ' ')
              if (t.length <= 16) "$t:00" else t
          } else if (trimmed.contains('T')) {
              if (trimmed.length <= 16) "$trimmed:00" else trimmed
@@ -144,10 +144,13 @@ package com.example.centralis_kotlin.events.presentation.views
                  maxLines = 5
              )
 
-             // Campo de fecha y hora con picker
+
              DateTimePickerField(
                  value = dateTime,
-                 onValueChange = { dateTime = it }
+                 onValueChange = { dateTime = it },
+                 selectedColor = Color(0xFFA68FCC),
+                 headerBackground = Color(0xFF302149),
+                 textColor = Color.White
              )
 
              OutlinedTextField(
@@ -189,7 +192,7 @@ package com.example.centralis_kotlin.events.presentation.views
                                          selectedRecipients + UUID.fromString(profile.userId)
                                      }
                                  }
-                                 .background(if (isSelected) CentralisPrimary.copy(alpha = 0.2f) else Color.Transparent)
+                                 .background(if (isSelected) Color(0xFFA68FCC).copy(alpha = 0.2f) else Color.Transparent)
                                  .padding(8.dp)
                          ) {
                              val avatar = profile.avatarUrl ?: "https://i.pravatar.cc/100?u=${profile.userId}"

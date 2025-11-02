@@ -151,10 +151,13 @@ fun UpdateEventScreen(
                 maxLines = 5
             )
 
-            // Campo de fecha y hora con picker
+            // Campo de fecha y hora: usar DatePickerDialog + TimePickerDialog al pulsar el icono
             DateTimePickerField(
                 value = dateTime,
-                onValueChange = { dateTime = it }
+                onValueChange = { dateTime = it },
+                selectedColor = Color(0xFFA68FCC), // <- agregar aquí para controlar color
+                headerBackground = Color(0xFF302149),
+                textColor = Color.White
             )
 
             OutlinedTextField(
@@ -197,7 +200,7 @@ fun UpdateEventScreen(
                                         selectedRecipients + uuid
                                     }
                                 }
-                                .background(if (isSelected) CentralisPrimary.copy(alpha = 0.2f) else Color.Transparent)
+                                .background(if (isSelected) Color(0xFFA68FCC).copy(alpha = 0.2f) else Color.Transparent)
                                 .padding(8.dp)
                         ) {
                             val avatar = profile.avatarUrl ?: "https://i.pravatar.cc/100?u=${profile.userId}"
