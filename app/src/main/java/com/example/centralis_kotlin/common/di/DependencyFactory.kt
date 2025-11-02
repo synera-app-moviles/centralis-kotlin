@@ -5,6 +5,12 @@ import com.example.centralis_kotlin.common.data.local.CentralisDatabase
 import com.example.centralis_kotlin.common.data.repository.NotificationRepository
 import com.example.centralis_kotlin.notification.presentation.viewmodels.NotificationViewModel
 import com.example.centralis_kotlin.common.services.DeviceTokenManager
+import com.example.centralis_kotlin.events.presentation.viewmodels.EventViewModel
+import com.example.centralis_kotlin.events.service.EventRepository
+import com.example.centralis_kotlin.events.service.EventRepositoryImpl
+import com.example.centralis_kotlin.events.service.EventApiService
+import com.example.centralis_kotlin.common.RetrofitClient
+import com.example.centralis_kotlin.common.SharedPreferencesManager
 
 /**
  * Factory para crear dependencias manualmente (sin Hilt)
@@ -20,6 +26,9 @@ object DependencyFactory {
     
     @Volatile
     private var deviceTokenManager: DeviceTokenManager? = null
+    
+    @Volatile
+    private var eventRepository: EventRepository? = null
     
     fun getDatabase(context: Context): CentralisDatabase {
         return database ?: synchronized(this) {
@@ -53,6 +62,21 @@ object DependencyFactory {
         )
     }
     
+    private fun getEventRepository(context: Context): EventRepository {
+        return eventRepository ?: synchronized(this) {
+            eventRepository ?: EventRepositoryImpl(
+                eventApiService = RetrofitClient.eventApiService,
+                tokenProvider = { SharedPreferencesManager(context).getToken() }
+            ).also { eventRepository = it }
+        }
+    }
+    
+    fun createEventViewModel(context: Context): EventViewModel {
+        return EventViewModel(
+            eventRepository = getEventRepository(context)
+        )
+    }
+    
     /**
      * Limpia instancias (útil para testing)
      */
@@ -60,5 +84,6 @@ object DependencyFactory {
         database = null
         notificationRepository = null
         deviceTokenManager = null
+        eventRepository = null
     }
 }

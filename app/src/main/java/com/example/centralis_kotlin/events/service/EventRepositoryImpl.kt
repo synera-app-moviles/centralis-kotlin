@@ -1,8 +1,7 @@
 package com.example.centralis_kotlin.events.service
 
-import android.util.Log
 import com.example.centralis_kotlin.events.model.CreateEventRequest
-import com.example.centralis_kotlin.events.model.Event
+import com.example.centralis_kotlin.events.model.EventResponse
 import com.example.centralis_kotlin.events.model.UpdateEventRequest
 import java.util.UUID
 import javax.inject.Inject
@@ -12,18 +11,13 @@ class EventRepositoryImpl @Inject constructor(
     private val tokenProvider: () -> String?
 ) : EventRepository {
 
-    private companion object {
-        const val TAG = "EventRepositoryImpl"
-    }
-
     private fun getAuthHeader(): String {
         val token = tokenProvider() ?: throw IllegalStateException("Token no disponible")
         return "Bearer $token"
     }
 
-    override suspend fun createEvent(request: CreateEventRequest): Result<Event> {
+    override suspend fun createEvent(request: CreateEventRequest): Result<EventResponse> {
         return try {
-            Log.d(TAG, "Creating event: ${request.title}")
             val response = eventApiService.createEvent(
                 authorization = getAuthHeader(),
                 request = request
@@ -32,48 +26,24 @@ class EventRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 val eventResponse = response.body()
                 if (eventResponse != null) {
-                    val event = Event(
-                        id = eventResponse.id,
-                        title = eventResponse.title,
-                        description = eventResponse.description,
-                        date = eventResponse.date,
-                        location = eventResponse.location,
-                        createdBy = eventResponse.createdBy,
-                        recipientIds = eventResponse.recipientIds,
-                        createdAt = eventResponse.createdAt,
-                        updatedAt = eventResponse.updatedAt
-                    )
-                    Result.success(event)
+                    Result.success(eventResponse)
                 } else {
                     Result.failure(Exception("Respuesta vacía del servidor"))
                 }
             } else {
                 val errorBody = response.errorBody()?.string() ?: "Error desconocido"
-                Log.e(TAG, "Error creating event: ${response.code()} - $errorBody")
                 Result.failure(Exception("Error del servidor: ${response.code()} - $errorBody"))
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Exception creating event", e)
             Result.failure(e)
         }
     }
 
-    override suspend fun getEventById(eventId: UUID): Result<Event> {
+    override suspend fun getEventById(eventId: UUID): Result<EventResponse> {
         return try {
             val response = eventApiService.getEventById(getAuthHeader(), eventId)
             if (response.isSuccessful && response.body() != null) {
-                val eventResponse = response.body()!!
-                Result.success(Event(
-                    id = eventResponse.id,
-                    title = eventResponse.title,
-                    description = eventResponse.description,
-                    date = eventResponse.date,
-                    location = eventResponse.location,
-                    createdBy = eventResponse.createdBy,
-                    recipientIds = eventResponse.recipientIds,
-                    createdAt = eventResponse.createdAt,
-                    updatedAt = eventResponse.updatedAt
-                ))
+                Result.success(response.body()!!)
             } else {
                 Result.failure(Exception("Error: ${response.code()}"))
             }
@@ -82,29 +52,15 @@ class EventRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getAllEvents(): Result<List<Event>> {
+    override suspend fun getAllEvents(): Result<List<EventResponse>> {
         return try {
-
             val response = eventApiService.getEvents(
                 authorization = getAuthHeader(),
                 userId = null,
                 filterType = null
             )
             if (response.isSuccessful && response.body() != null) {
-                val events = response.body()!!.map { eventResponse ->
-                    Event(
-                        id = eventResponse.id,
-                        title = eventResponse.title,
-                        description = eventResponse.description,
-                        date = eventResponse.date,
-                        location = eventResponse.location,
-                        createdBy = eventResponse.createdBy,
-                        recipientIds = eventResponse.recipientIds,
-                        createdAt = eventResponse.createdAt,
-                        updatedAt = eventResponse.updatedAt
-                    )
-                }
-                Result.success(events)
+                Result.success(response.body()!!)
             } else {
                 Result.failure(Exception("Error: ${response.code()}"))
             }
@@ -113,7 +69,7 @@ class EventRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getEventsByRecipient(userId: UUID): Result<List<Event>> {
+    override suspend fun getEventsByRecipient(userId: UUID): Result<List<EventResponse>> {
         return try {
             val response = eventApiService.getEvents(
                 authorization = getAuthHeader(),
@@ -121,20 +77,7 @@ class EventRepositoryImpl @Inject constructor(
                 filterType = "recipient"
             )
             if (response.isSuccessful && response.body() != null) {
-                val events = response.body()!!.map { eventResponse ->
-                    Event(
-                        id = eventResponse.id,
-                        title = eventResponse.title,
-                        description = eventResponse.description,
-                        date = eventResponse.date,
-                        location = eventResponse.location,
-                        createdBy = eventResponse.createdBy,
-                        recipientIds = eventResponse.recipientIds,
-                        createdAt = eventResponse.createdAt,
-                        updatedAt = eventResponse.updatedAt
-                    )
-                }
-                Result.success(events)
+                Result.success(response.body()!!)
             } else {
                 Result.failure(Exception("Error: ${response.code()}"))
             }
@@ -143,7 +86,7 @@ class EventRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getEventsByCreator(userId: UUID): Result<List<Event>> {
+    override suspend fun getEventsByCreator(userId: UUID): Result<List<EventResponse>> {
         return try {
             val response = eventApiService.getEvents(
                 authorization = getAuthHeader(),
@@ -151,20 +94,7 @@ class EventRepositoryImpl @Inject constructor(
                 filterType = "creator"
             )
             if (response.isSuccessful && response.body() != null) {
-                val events = response.body()!!.map { eventResponse ->
-                    Event(
-                        id = eventResponse.id,
-                        title = eventResponse.title,
-                        description = eventResponse.description,
-                        date = eventResponse.date,
-                        location = eventResponse.location,
-                        createdBy = eventResponse.createdBy,
-                        recipientIds = eventResponse.recipientIds,
-                        createdAt = eventResponse.createdAt,
-                        updatedAt = eventResponse.updatedAt
-                    )
-                }
-                Result.success(events)
+                Result.success(response.body()!!)
             } else {
                 Result.failure(Exception("Error: ${response.code()}"))
             }
@@ -173,22 +103,11 @@ class EventRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateEvent(eventId: UUID, request: UpdateEventRequest): Result<Event> {
+    override suspend fun updateEvent(eventId: UUID, request: UpdateEventRequest): Result<EventResponse> {
         return try {
             val response = eventApiService.updateEvent(getAuthHeader(), eventId, request)
             if (response.isSuccessful && response.body() != null) {
-                val eventResponse = response.body()!!
-                Result.success(Event(
-                    id = eventResponse.id,
-                    title = eventResponse.title,
-                    description = eventResponse.description,
-                    date = eventResponse.date,
-                    location = eventResponse.location,
-                    createdBy = eventResponse.createdBy,
-                    recipientIds = eventResponse.recipientIds,
-                    createdAt = eventResponse.createdAt,
-                    updatedAt = eventResponse.updatedAt
-                ))
+                Result.success(response.body()!!)
             } else {
                 Result.failure(Exception("Error: ${response.code()}"))
             }

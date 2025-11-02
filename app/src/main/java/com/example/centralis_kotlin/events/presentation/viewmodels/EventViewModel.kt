@@ -3,7 +3,7 @@ package com.example.centralis_kotlin.events.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.centralis_kotlin.events.model.CreateEventRequest
-import com.example.centralis_kotlin.events.model.Event
+import com.example.centralis_kotlin.events.model.EventResponse
 import com.example.centralis_kotlin.events.model.UpdateEventRequest
 import com.example.centralis_kotlin.events.service.EventRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,11 +16,11 @@ class EventViewModel(
     private val eventRepository: EventRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<EventUiState>(EventUiState.Loading)
+    private val _uiState = MutableStateFlow<EventUiState>(EventUiState.Idle)
     val uiState: StateFlow<EventUiState> = _uiState.asStateFlow()
 
-    private val _events = MutableStateFlow<List<Event>>(emptyList())
-    val events: StateFlow<List<Event>> = _events.asStateFlow()
+    private val _events = MutableStateFlow<List<EventResponse>>(emptyList())
+    val events: StateFlow<List<EventResponse>> = _events.asStateFlow()
 
     fun createEvent(request: CreateEventRequest) {
         viewModelScope.launch {

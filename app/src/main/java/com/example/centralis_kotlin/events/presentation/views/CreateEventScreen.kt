@@ -1,6 +1,8 @@
 package com.example.centralis_kotlin.events.presentation.views
 
  import com.example.centralis_kotlin.events.model.CreateEventRequest
+ import com.example.centralis_kotlin.events.presentation.viewmodels.EventViewModel
+ import com.example.centralis_kotlin.events.presentation.viewmodels.EventUiState
  import androidx.compose.foundation.background
  import androidx.compose.foundation.clickable
  import androidx.compose.foundation.layout.*
@@ -19,6 +21,8 @@ package com.example.centralis_kotlin.events.presentation.views
  import androidx.compose.ui.unit.dp
  import coil.compose.AsyncImage
  import androidx.compose.ui.unit.sp
+ import androidx.compose.ui.platform.LocalContext
+ import android.widget.Toast
  import com.example.centralis_kotlin.profile.models.Position
  import com.example.centralis_kotlin.profile.models.ProfileResponse
  import com.example.centralis_kotlin.profile.services.ProfileWebService
@@ -30,8 +34,9 @@ package com.example.centralis_kotlin.events.presentation.views
  @OptIn(ExperimentalMaterial3Api::class)
  @Composable
  fun CreateEventScreen(
-     onCreate: (CreateEventRequest) -> Unit,
+     eventViewModel: EventViewModel,
      onCancel: () -> Unit,
+     onSuccess: () -> Unit,
      profileWebService: ProfileWebService,
      authorization: String,
      currentUserId: UUID
@@ -44,6 +49,27 @@ package com.example.centralis_kotlin.events.presentation.views
      var selectedRecipients by remember { mutableStateOf(listOf<UUID>()) }
      var profiles by remember { mutableStateOf<List<ProfileResponse>>(emptyList()) }
      var isLoading by remember { mutableStateOf(true) }
+     
+     val context = LocalContext.current
+     
+     // Observar el estado del ViewModel
+     val uiState by eventViewModel.uiState.collectAsState()
+     
+     // Manejar el estado del ViewModel
+     LaunchedEffect(uiState) {
+         when (uiState) {
+             is EventUiState.Success -> {
+                 Toast.makeText(context, (uiState as EventUiState.Success).message, Toast.LENGTH_SHORT).show()
+                 onSuccess()
+                 eventViewModel.resetState()
+             }
+             is EventUiState.Error -> {
+                 Toast.makeText(context, "Error: ${(uiState as EventUiState.Error).message}", Toast.LENGTH_LONG).show()
+                 eventViewModel.resetState()
+             }
+             else -> { /* Manejar otros estados si es necesario */ }
+         }
+     }
 
      fun toIsoLike(input: String): String {
          val trimmed = input.trim()
@@ -235,20 +261,28 @@ package com.example.centralis_kotlin.events.presentation.views
                          recipientIds = selectedRecipients,
                          createdBy = currentUserId
                      )
-                     onCreate(request)
+                     eventViewModel.createEvent(request)
                  },
+                 enabled = uiState !is EventUiState.Loading && title.isNotBlank(),
                  colors = ButtonDefaults.buttonColors(containerColor = CentralisPrimary),
                  modifier = Modifier
                      .fillMaxWidth()
                      .height(35.dp),
                  shape = MaterialTheme.shapes.medium
              ) {
-                 Text(
-                     "Create Event",
-                     color = CentralisOnPrimary,
-                     fontSize = 16.sp,
-                     fontWeight = FontWeight.Bold
-                 )
+                 if (uiState is EventUiState.Loading) {
+                     CircularProgressIndicator(
+                         color = CentralisOnPrimary,
+                         modifier = Modifier.size(16.dp)
+                     )
+                 } else {
+                     Text(
+                         "Create Event",
+                         color = CentralisOnPrimary,
+                         fontSize = 16.sp,
+                         fontWeight = FontWeight.Bold
+                     )
+                 }
              }
          }
      }

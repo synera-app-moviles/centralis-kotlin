@@ -19,9 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
-import com.example.centralis_kotlin.common.RetrofitClient
-import com.example.centralis_kotlin.common.SharedPreferencesManager
 import com.example.centralis_kotlin.events.model.EventResponse
+import com.example.centralis_kotlin.events.presentation.viewmodels.EventViewModel
+import com.example.centralis_kotlin.events.presentation.viewmodels.EventUiState
+import com.example.centralis_kotlin.common.di.DependencyFactory
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -38,53 +39,16 @@ fun EventsScreen(
     onAddEventClick: () -> Unit,
     onViewEventClick: (EventResponse) -> Unit
 ) {
-    var events by remember { mutableStateOf<List<EventResponse>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var refreshTrigger by remember { mutableStateOf(0) }
-
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
-
-    // Dentro de la función loadEvents() en EventsScreen.kt
-    fun loadEvents() {
-        isLoading = true
-        error = null
-        scope.launch {
-            try {
-                val token = SharedPreferencesManager(context).getToken()
-                val authHeader = "Bearer $token"
-                val userIdStr = SharedPreferencesManager(context).getUserId()
-                val currentUserId = UUID.fromString(userIdStr)
-
-                // Obtener eventos donde el usuario es participante
-                val recipientResponse = RetrofitClient.eventApiService.getEvents(
-                    authorization = authHeader,
-                    userId = currentUserId,
-                    filterType = "recipient"
-                )
-                // Obtener eventos donde el usuario es creador
-                val creatorResponse = RetrofitClient.eventApiService.getEvents(
-                    authorization = authHeader,
-                    userId = currentUserId,
-                    filterType = "creator"
-                )
-
-                val recipientEvents = recipientResponse.body() ?: emptyList()
-                val creatorEvents = creatorResponse.body() ?: emptyList()
-
-                // Unir y eliminar duplicados por id
-                events = (recipientEvents + creatorEvents).distinctBy { it.id }
-            } catch (e: Exception) {
-                error = "Error de conexión: ${e.message}"
-            } finally {
-                isLoading = false
-            }
-        }
-    }
-
-    LaunchedEffect(refreshTrigger) {
-        loadEvents()
+    val eventViewModel = remember { DependencyFactory.createEventViewModel(context) }
+    
+    // Observar estados del ViewModel
+    val uiState by eventViewModel.uiState.collectAsState()
+    val events by eventViewModel.events.collectAsState()
+    
+    // Cargar eventos al iniciar
+    LaunchedEffect(Unit) {
+        eventViewModel.loadAllEvents()
     }
 
     Scaffold(
@@ -96,18 +60,18 @@ fun EventsScreen(
                 .fillMaxSize()
                 .background(Color(0xFF160F23))
         ) {
-            when {
-                isLoading -> {
+            when (uiState) {
+                is EventUiState.Loading -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(color = Color.White)
                     }
                 }
-                error != null -> {
+                is EventUiState.Error -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(error!!, color = Color.Red)
+                            Text((uiState as EventUiState.Error).message, color = Color.Red)
                             Spacer(modifier = Modifier.height(8.dp))
-                            Button(onClick = { refreshTrigger++ }) {
+                            Button(onClick = { eventViewModel.loadAllEvents() }) {
                                 Text("Reintentar")
                             }
                         }
@@ -122,7 +86,6 @@ fun EventsScreen(
                                 event = event,
                                 onViewClick = { onViewEventClick(event) }
                             )
-
                         }
                     }
                 }

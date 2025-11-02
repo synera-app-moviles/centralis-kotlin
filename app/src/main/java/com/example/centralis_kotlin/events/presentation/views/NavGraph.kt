@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import com.example.centralis_kotlin.common.RetrofitClient
 import com.example.centralis_kotlin.common.SharedPreferencesManager
 import com.example.centralis_kotlin.events.model.EventResponse
+import com.example.centralis_kotlin.common.di.DependencyFactory
 
 import java.util.UUID
 
@@ -43,31 +44,22 @@ fun AppNavGraph(navController: NavHostController, modifier: Modifier = Modifier)
             )
         }
        composable(Screen.CreateEvent.route) {
-           val scope = rememberCoroutineScope()
            val context = LocalContext.current
            val token = SharedPreferencesManager(context).getToken()
            val authHeader = "Bearer $token"
            val profileWebService = RetrofitClient.profileWebService
            val currentUserIdStr = SharedPreferencesManager(context).getUserId()
            val currentUserId = currentUserIdStr?.let { UUID.fromString(it) } ?: UUID.randomUUID()
+           
+           // Crear EventViewModel usando DependencyFactory
+           val eventViewModel = remember { DependencyFactory.createEventViewModel(context) }
 
            CreateEventScreen(
-               onCreate = { newEventRequest ->
-                   scope.launch {
-                       try {
-                           val resp = RetrofitClient.eventApiService.createEvent(
-                               authHeader, newEventRequest)
-                           if (resp.isSuccessful) {
-                               navController.popBackStack(Screen.Events.route, inclusive = false)
-                           } else {
-                               navController.popBackStack()
-                           }
-                       } catch (e: Exception) {
-                           navController.popBackStack()
-                       }
-                   }
-               },
+               eventViewModel = eventViewModel,
                onCancel = { navController.popBackStack() },
+               onSuccess = { 
+                   navController.popBackStack(Screen.Events.route, inclusive = false) 
+               },
                profileWebService = profileWebService,
                authorization = authHeader,
                currentUserId = currentUserId
