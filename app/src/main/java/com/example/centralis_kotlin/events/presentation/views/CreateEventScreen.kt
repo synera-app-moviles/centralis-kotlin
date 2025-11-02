@@ -221,7 +221,7 @@ package com.example.centralis_kotlin.events.presentation.views
                                  .background(if (isSelected) Color(0xFFA68FCC).copy(alpha = 0.2f) else Color.Transparent)
                                  .padding(8.dp)
                          ) {
-                             val avatar = profile.avatarUrl ?: "https://i.pravatar.cc/100?u=${profile.userId}"
+                             val avatar = profile.avatarUrl ?: "https://i.pinimg.com/1200x/b1/fc/14/b1fc14cb1cf646a3a25ad517706831de.jpg"
                              AsyncImage(
                                  model = avatar,
                                  contentDescription = "${profile.fullName} avatar",

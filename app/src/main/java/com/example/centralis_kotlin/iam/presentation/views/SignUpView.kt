@@ -20,6 +20,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.navigation.NavHostController
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import com.example.centralis_kotlin.iam.presentation.viewmodels.IAMViewModel
 import com.example.centralis_kotlin.common.components.CustomDropDownMenu
 import com.example.centralis_kotlin.profile.models.Position
@@ -32,7 +34,8 @@ fun TextFieldView(
     value: String,
     onValueChange: (String) -> Unit,
     textStyle: TextStyle,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    visualTransformation: VisualTransformation = VisualTransformation.None
 ) {
     Box(modifier = modifier) {
         if (value.isEmpty()) {
@@ -45,7 +48,8 @@ fun TextFieldView(
             value = value,
             onValueChange = onValueChange,
             textStyle = textStyle,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            visualTransformation = visualTransformation
         )
     }
 }
@@ -348,7 +352,8 @@ fun SignUpView(
                                 color = Color(0xFF302149),
                                 shape = RoundedCornerShape(8.dp)
                             )
-                            .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,)
+                            .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,),
+                        visualTransformation = PasswordVisualTransformation()
                     )
                 }
                 Column(
@@ -381,7 +386,8 @@ fun SignUpView(
                                 color = Color(0xFF302149),
                                 shape = RoundedCornerShape(8.dp)
                             )
-                            .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,)
+                            .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,),
+                        visualTransformation = PasswordVisualTransformation()
                     )
                 }
             }

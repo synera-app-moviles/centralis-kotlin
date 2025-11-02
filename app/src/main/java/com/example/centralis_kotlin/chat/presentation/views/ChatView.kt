@@ -53,7 +53,7 @@ fun ChatView(
                 id = g.id,
                 name = g.name,
                 lastMessage = "", // si luego quieres, trae el último mensaje
-                avatarUrl = g.imageUrl ?: "https://i.pravatar.cc/150?u=${g.id}"
+                avatarUrl = g.imageUrl ?: "https://i.imgur.com/xDofyTr.png"
             )
         }
     }

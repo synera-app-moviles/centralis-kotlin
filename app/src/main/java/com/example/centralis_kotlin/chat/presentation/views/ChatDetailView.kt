@@ -81,13 +81,10 @@ fun ChatDetailView(
             }
 
 
-            // Avatar del header: otro participante si existe, si no el mío
-            val otherSenderId = messages.firstOrNull { it.senderId != vm.currentUserId }?.senderId
-            val headerProfile = vm.profileOf(otherSenderId ?: (vm.currentUserId ?: ""))
+            // Avatar del grupo (misma imagen que en ChatView)
             GlideImage(
-                model = headerProfile?.avatarUrl
-                    ?: "https://i.pinimg.com/736x/e5/c1/c3/e5c1c34fe65d23b9a876b3dcdfd27ba7.jpg",
-                contentDescription = null,
+                model = vm.currentGroup?.imageUrl ?: "https://i.imgur.com/xDofyTr.png",
+                contentDescription = "Group avatar",
                 modifier = Modifier.size(36.dp).clip(CircleShape)
             )
 
@@ -96,27 +93,10 @@ fun ChatDetailView(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Chat", // o pásalo por parámetro si lo tienes
+                    text = vm.currentGroup?.name ?: "Chat", // o pásalo por parámetro si lo tienes
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 18.sp
-                )
-                // Indicador de estado de conexión SSE
-                Text(
-                    text = when (connectionState) {
-                        is SseConnectionState.Connected -> "🟢 Conectado"
-                        is SseConnectionState.Connecting -> "🟡 Conectando..."
-                        is SseConnectionState.Reconnecting -> "🟠 Reconectando..."
-                        is SseConnectionState.Disconnected -> "🔴 Desconectado"
-                        is SseConnectionState.Error -> "❌ Error de conexión"
-                        else -> "Estado desconocido"
-                    },
-                    color = when (connectionState) {
-                        is SseConnectionState.Connected -> Color(0xFF4CAF50)
-                        is SseConnectionState.Error, is SseConnectionState.Disconnected -> Color(0xFFFF5252)
-                        else -> Muted
-                    },
-                    fontSize = 11.sp
                 )
             }
 

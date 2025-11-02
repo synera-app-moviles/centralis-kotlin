@@ -22,6 +22,7 @@ import kotlinx.coroutines.coroutineScope
 class ChatDetailViewModel(context: Context) : ViewModel() {
 
     private val msgsWebService = RetrofitClient.chatMessagesWebService
+    private val groupsWebService = RetrofitClient.chatGroupsWebService
     private val prefs = SharedPreferencesManager(context)
     private val profileWs = RetrofitClient.profileWebService
     private val sseService = SseService()
@@ -29,6 +30,7 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
     val profiles = mutableStateMapOf<String, ProfileResponse>()
 
     var messages: List<MessageResponse> by mutableStateOf(emptyList())
+    var currentGroup: GroupResponse? by mutableStateOf(null)
     var isLoading by mutableStateOf(false)
     var sending by mutableStateOf(false)
     var error: String? by mutableStateOf(null)
@@ -64,6 +66,9 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
                             uniqueSenders.map { uid -> async { ensureProfile(uid, tok) } }.forEach { it.await() }
                         }
                         
+                        // Cargar información del grupo
+                        launch { loadGroupInfo(groupId, token) }
+                        
                         // Conectar a SSE para recibir mensajes en tiempo real
                         setupSseConnection(groupId)
                     } else {
@@ -76,6 +81,19 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
             } finally {
                 withContext(Dispatchers.Main) { isLoading = false }
             }
+        }
+    }
+
+    private suspend fun loadGroupInfo(groupId: String, token: String) {
+        try {
+            val response = groupsWebService.getGroupById(groupId, token)
+            if (response.isSuccessful) {
+                withContext(Dispatchers.Main) {
+                    currentGroup = response.body()
+                }
+            }
+        } catch (e: Exception) {
+            // No mostrar error, es opcional
         }
     }
 
