@@ -18,7 +18,7 @@ object RetrofitClient {
     // Cliente Retrofit unificado (reutilizable para ambos contextos)
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl("http://192.168.1.45:8080/")
+            .baseUrl("https://web-services-okt8.onrender.com/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

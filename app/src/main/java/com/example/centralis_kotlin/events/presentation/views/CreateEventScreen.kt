@@ -52,10 +52,10 @@ package com.example.centralis_kotlin.events.presentation.views
      
      val context = LocalContext.current
      
-     // Observar el estado del ViewModel
+
      val uiState by eventViewModel.uiState.collectAsState()
      
-     // Manejar el estado del ViewModel
+
      LaunchedEffect(uiState) {
          when (uiState) {
              is EventUiState.Success -> {

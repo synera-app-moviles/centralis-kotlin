@@ -151,11 +151,11 @@ fun UpdateEventScreen(
                 maxLines = 5
             )
 
-            // Campo de fecha y hora: usar DatePickerDialog + TimePickerDialog al pulsar el icono
+
             DateTimePickerField(
                 value = dateTime,
                 onValueChange = { dateTime = it },
-                selectedColor = Color(0xFFA68FCC), // <- agregar aquí para controlar color
+                selectedColor = Color(0xFFA68FCC),
                 headerBackground = Color(0xFF302149),
                 textColor = Color.White
             )

@@ -115,7 +115,7 @@ fun DateTimePickerField(
                     .padding(16.dp)
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    // header con navegación de meses
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -124,7 +124,7 @@ fun DateTimePickerField(
                             .padding(8.dp)
                     ) {
                         IconButton(onClick = {
-                            // retroceder un mes
+
                             if (selMonth == 1) { selMonth = 12; selYear -= 1 } else selMonth -= 1
                         }) {
                             Icon(Icons.Default.ArrowBack, contentDescription = "Mes anterior", tint = textColor)
@@ -136,7 +136,7 @@ fun DateTimePickerField(
                             modifier = Modifier.weight(1f),
                         )
                         IconButton(onClick = {
-                            // avanzar un mes
+
                             if (selMonth == 12) { selMonth = 1; selYear += 1 } else selMonth += 1
                         }) {
                             Icon(Icons.Default.ArrowForward, contentDescription = "Mes siguiente", tint = textColor)
@@ -146,7 +146,7 @@ fun DateTimePickerField(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     if (mode == Mode.DATE) {
-                        // calendario
+
                         CalendarGridByCalendar(
                             year = selYear,
                             month = selMonth,
@@ -164,7 +164,7 @@ fun DateTimePickerField(
                             Button(onClick = { mode = Mode.TIME }) { Text("Siguiente") }
                         }
                     } else {
-                        // vista de hora y minutos: minutos debajo de hora
+
                         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("Hora", color = textColor)
                             NumberPickerRow(
