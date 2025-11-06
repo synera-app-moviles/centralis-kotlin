@@ -120,41 +120,32 @@ package com.example.centralis_kotlin.events.presentation.views
        }
    }
 
-   @OptIn(ExperimentalMaterial3Api::class)
    @Composable
    fun EventsTopBar(isManager: Boolean, onAddEventClick: () -> Unit) {
-       TopAppBar(
-           title = {
-               Box(
-                   modifier = Modifier.fillMaxWidth(),
-                   contentAlignment = Alignment.Center
-               ) {
-                   Text(
-                       text = "Events",
-                       fontWeight = FontWeight.Bold,
-                       fontSize = 22.sp,
-                       color = Color.White,
-                       modifier = Modifier.offset(y = (-20).dp)
-                   )
-               }
-           },
-           actions = {
-
-               IconButton(
-                   onClick = onAddEventClick,
-                   modifier = Modifier.offset(y = (-20).dp)
-               ) {
-                   Icon(
-                       Icons.Default.Add,
-                       contentDescription = "Add Event",
-                       tint = Color.White
-                   )
-               }
-           },
-           colors = TopAppBarDefaults.topAppBarColors(
-               containerColor = Color(0xFF170F24)
+       Box(
+           modifier = Modifier
+               .fillMaxWidth()
+               .padding(top = 16.dp, bottom = 8.dp)
+               .padding(horizontal = 16.dp),
+       ) {
+           Text(
+               text = "Events",
+               color = Color.White,
+               fontSize = 22.sp,
+               fontWeight = FontWeight.Bold,
+               modifier = Modifier.align(Alignment.Center)
            )
-       )
+           IconButton(
+               onClick = onAddEventClick,
+               modifier = Modifier.align(Alignment.CenterEnd)
+           ) {
+               Icon(
+                   imageVector = Icons.Default.Add,
+                   contentDescription = "Add Event",
+                   tint = Color.White
+               )
+           }
+       }
    }
 
     @Composable

@@ -59,9 +59,7 @@ fun CentralisApp() {
                 } else {
                     Log.w("CentralisApp", "⚠️ No se pudo obtener FCM token después del login")
                 }
-                
-                // Crear notificación de bienvenida después del login exitoso
-                createWelcomeNotification(context)
+
                 
             } catch (e: Exception) {
                 Log.e("CentralisApp", "❌ Error obteniendo FCM token después del login", e)
@@ -81,30 +79,5 @@ fun CentralisApp() {
         AuthNavigation(
             onLoginSuccess = handleLoginSuccess
         )
-    }
-}
-
-private suspend fun createWelcomeNotification(context: Context) {
-    try {
-        val repository = DependencyFactory.getNotificationRepository(context)
-        val sharedPrefs = SharedPreferencesManager(context)
-        val userId = sharedPrefs.getUserId() ?: "test-user-123"
-        
-        val testNotification = NotificationEntity(
-            id = "welcome-${System.currentTimeMillis()}",
-            userId = userId,
-            title = "🎉 ¡Bienvenido a Centralis!",
-            message = "Login exitoso. Room Database y FCM configurados correctamente. Ve a Notificaciones para ver tus mensajes.",
-            type = "SYSTEM",
-            timestamp = System.currentTimeMillis(),
-            isRead = false,
-            priority = 1
-        )
-        
-        repository.insertNotification(testNotification)
-        Log.d("CentralisApp", "✅ Notificación de bienvenida creada para userId=$userId")
-        
-    } catch (e: Exception) {
-        Log.e("CentralisApp", "❌ Error creando notificación de bienvenida", e)
     }
 }
