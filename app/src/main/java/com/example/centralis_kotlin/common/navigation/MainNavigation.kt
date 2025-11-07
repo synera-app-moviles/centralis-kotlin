@@ -167,6 +167,11 @@ fun MainNavigation(onLogout: () -> Unit) {
                     navController = navController
                 )
             }
+
+            composable(NavigationRoutes.SAVED_ANNOUNCEMENTS) {
+                SavedAnnouncementsScreen(onBack = { navController.popBackStack() })
+            }
+
         }
     }
 }

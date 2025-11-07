@@ -508,7 +508,38 @@ fun ProfileView(
                                 }
                             }
                         }
-                        
+
+                        // Botón para ver anuncios guardados
+                        OutlinedButton(
+                            onClick = {
+                                nav.navigate(com.example.centralis_kotlin.common.navigation.NavigationRoutes.SAVED_ANNOUNCEMENTS)
+                            },
+                            border = BorderStroke(0.dp, Color.Transparent),
+                            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent),
+                            contentPadding = PaddingValues(),
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .clip(shape = RoundedCornerShape(8.dp))
+                                .fillMaxWidth()
+                                .background(
+                                    color = Color(0xFF8E3DF9),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(vertical = 9.dp)
+                            ) {
+                                Text(
+                                    "Ver anuncios guardados",
+                                    color = Color(0xFFFFFFFF),
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
+
+
                         OutlinedButton(
                             onClick = {
                                 // Limpiar datos del perfil y logout

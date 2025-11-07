@@ -12,6 +12,8 @@ object NavigationRoutes {
     const val ANNOUNCEMENT_CREATE = "announcement_create"
     const val ANNOUNCEMENT_EDIT = "announcement_edit"
 
+    const val SAVED_ANNOUNCEMENTS = "saved_announcements"
+
 
     // Main app routes
     const val PROFILE = "profile"
