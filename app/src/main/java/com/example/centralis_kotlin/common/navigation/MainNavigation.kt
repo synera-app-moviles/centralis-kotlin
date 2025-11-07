@@ -169,7 +169,7 @@ fun MainNavigation(onLogout: () -> Unit) {
             }
 
             composable(NavigationRoutes.SAVED_ANNOUNCEMENTS) {
-                SavedAnnouncementsScreen(onBack = { navController.popBackStack() })
+                SavedAnnouncementsScreen(navController = navController) // <--- CAMBIO AQUÍ
             }
 
         }
