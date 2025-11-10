@@ -9,6 +9,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import com.example.centralis_kotlin.common.network.FCMApiService
 import com.example.centralis_kotlin.common.network.NotificationApiService
+import com.example.centralis_kotlin.events.service.EventApiService
+import kotlin.getValue
 
 
 object RetrofitClient {
@@ -49,4 +51,9 @@ object RetrofitClient {
     val notificationApiService: NotificationApiService by lazy {
         retrofit.create(NotificationApiService::class.java)
     }
+
+    val eventApiService: EventApiService by lazy {
+        retrofit.create(EventApiService::class.java)
+    }
+
 }

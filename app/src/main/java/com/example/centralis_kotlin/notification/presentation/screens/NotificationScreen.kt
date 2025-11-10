@@ -1,5 +1,6 @@
 package com.example.centralis_kotlin.notification.presentation.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -38,23 +40,30 @@ fun NotificationScreen(
     }
     
     Column(
-        modifier = modifier.fillMaxSize()
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFF160F23)) // Mismo fondo que el perfil
     ) {
         // Header con título y botón de regreso
         TopAppBar(
             title = { 
                 Text(
-                    text = "Notificaciones ${if (uiState.unreadCount > 0) "(${uiState.unreadCount})" else ""}"
+                    text = "Notifications ${if (uiState.unreadCount > 0) "(${uiState.unreadCount})" else ""}",
+                    color = Color.White
                 ) 
             },
             navigationIcon = {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Regresar"
+                        contentDescription = "Go back",
+                        tint = Color.White
                     )
                 }
-            }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color(0xFF160F23)
+            )
         )
         
         // Contenido principal
@@ -73,20 +82,17 @@ fun NotificationScreen(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(
-                            text = "📬",
-                            style = MaterialTheme.typography.displayLarge
-                        )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "No hay notificaciones",
-                            style = MaterialTheme.typography.titleMedium
+                            text = "No notifications",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Las notificaciones aparecerán aquí cuando las recibas",
+                            text = "Notifications will appear here when you receive them",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color.White.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -113,14 +119,6 @@ fun NotificationScreen(
             }
         }
     }
-    
-    // Mostrar error si existe
-    uiState.error?.let { error ->
-        LaunchedEffect(error) {
-            // Aquí podrías mostrar un SnackBar si tuvieras el SnackbarHost disponible
-            println("Error: $error") // Por ahora solo log
-        }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -136,9 +134,9 @@ fun NotificationItem(
         onClick = onMarkAsRead,
         colors = CardDefaults.cardColors(
             containerColor = if (notification.isRead) 
-                MaterialTheme.colorScheme.surface 
+                Color(0xFF2D1B40) // Color más oscuro para notificaciones leídas
             else 
-                MaterialTheme.colorScheme.primaryContainer
+                Color(0xFF4A2B61) // Color más claro para notificaciones no leídas
         )
     ) {
         Column(
@@ -161,7 +159,8 @@ fun NotificationItem(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = if (!notification.isRead) FontWeight.Bold else FontWeight.Normal,
                         maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        color = Color.White
                     )
                     
                     // Tipo y prioridad
@@ -186,8 +185,8 @@ fun NotificationItem(
                             ) {
                                 Text(
                                     text = when (notification.priority) {
-                                        1 -> "ALTA"
-                                        2 -> "CRÍTICA"
+                                        1 -> "HIGH"
+                                        2 -> "CRITICAL"
                                         else -> "NORMAL"
                                     },
                                     style = MaterialTheme.typography.labelSmall
@@ -201,8 +200,8 @@ fun NotificationItem(
                 IconButton(onClick = onDelete) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Eliminar notificación",
-                        tint = MaterialTheme.colorScheme.error
+                        contentDescription = "Delete notification",
+                        tint = Color(0xFFE57373) // Color rojo claro para mejor visibilidad
                     )
                 }
             }
@@ -213,10 +212,7 @@ fun NotificationItem(
             Text(
                 text = notification.message,
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (!notification.isRead) 
-                    MaterialTheme.colorScheme.onPrimaryContainer 
-                else 
-                    MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color.White.copy(alpha = 0.9f)
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -225,7 +221,7 @@ fun NotificationItem(
             Text(
                 text = formatTimestamp(notification.timestamp),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color.White.copy(alpha = 0.7f)
             )
         }
     }

@@ -2,7 +2,7 @@ package com.example.centralis_kotlin.events.model
 
 import java.util.UUID
 
-data class Event(
+data class EventResponse(
     val id: UUID,
     val title: String,
     val description: String,

@@ -180,27 +180,5 @@ class NotificationViewModel(
         }
     }
     
-    // Crear notificación de prueba para testing
-    fun createTestNotification() {
-        viewModelScope.launch {
-            try {
-                val testNotification = NotificationEntity(
-                    id = "test-${System.currentTimeMillis()}",
-                    userId = currentUserId,
-                    title = "🎉 Notificación de Prueba",
-                    message = "Esta es una notificación creada para probar Room Database y la UI.",
-                    type = "GENERAL",
-                    timestamp = System.currentTimeMillis(),
-                    isRead = false,
-                    priority = 1
-                )
-                
-                notificationRepository.insertNotification(testNotification)
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    error = "Error creando notificación de prueba: ${e.message}"
-                )
-            }
-        }
-    }
+
 }
