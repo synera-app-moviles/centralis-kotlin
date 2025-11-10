@@ -13,24 +13,36 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.example.centralis_kotlin.announcement.model.Announcement
 import com.example.centralis_kotlin.announcement.model.Priority
 import com.example.centralis_kotlin.announcement.presentation.viewmodels.AnnouncementViewModel
+import com.example.centralis_kotlin.common.components.ImagePicker
+import com.example.centralis_kotlin.common.config.ImageType
 import java.util.*
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CreateAnnouncementScreen(
     onCreated: () -> Unit,
     vm: AnnouncementViewModel = viewModel()
 ) {
+    val context = LocalContext.current
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedPriority by remember { mutableStateOf(Priority.Normal) }
+    
+    // Estados para la imagen (siguiendo el patrón de la guía)
+    var announcementImageUrl by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         containerColor = Color(0xFF160F23),
@@ -66,7 +78,7 @@ fun CreateAnnouncementScreen(
                             id = "",
                             title = title,
                             description = description,
-                            image = null,
+                            image = announcementImageUrl,
                             priority = selectedPriority,
                             createdAt = Date(),
                             createdBy = "123e4567-e89b-12d3-a456-426614174000", // luego lo traemos de IAM
@@ -136,17 +148,37 @@ fun CreateAnnouncementScreen(
                 shape = RoundedCornerShape(8.dp)
             )
 
-            // Upload Image
-            Button(
-                onClick = { /* TODO: implementar carga */ },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF4A2B61),
-                    contentColor = Color(0xFFB39DDB)
+            // Selector de imagen (IGUAL QUE PROFILEVIEW - según la guía)
+            ImagePicker(
+                imageType = ImageType.ANNOUNCEMENT,
+                currentImageUrl = announcementImageUrl,
+                onImageUploaded = { imageUrl ->
+                    announcementImageUrl = imageUrl
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            // Previsualización de la imagen seleccionada
+            if (!announcementImageUrl.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text(
+                    text = "Previsualización:",
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium)
                 )
-            ) {
-                Text("Upload Image")
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                GlideImage(
+                    model = announcementImageUrl,
+                    contentDescription = "Preview de la imagen del anuncio",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
             }
 
             // Priority selector

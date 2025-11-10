@@ -17,13 +17,18 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.example.centralis_kotlin.announcement.data.AppDatabase
 import com.example.centralis_kotlin.announcement.data.LocalAnnouncementRepository
+import com.example.centralis_kotlin.announcement.model.Announcement
 import com.example.centralis_kotlin.announcement.model.Priority
 import com.example.centralis_kotlin.announcement.presentation.viewmodels.AnnouncementViewModel
 import com.example.centralis_kotlin.common.navigation.NavigationRoutes
@@ -111,8 +116,7 @@ fun AnnouncementListScreen(
                 ) {
                     items(announcementsState, key = { it.id }) { announcement ->
                         AnnouncementCard(
-                            announcementTitle = announcement.title,
-                            priority = announcement.priority,
+                            announcement = announcement,
                             onClick = {
                                 navController.navigate("${NavigationRoutes.ANNOUNCEMENT_DETAIL}/${announcement.id}")
                             }
@@ -124,10 +128,10 @@ fun AnnouncementListScreen(
     }
 }
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 private fun AnnouncementCard(
-    announcementTitle: String,
-    priority: Priority,
+    announcement: Announcement,
     onClick: () -> Unit
 ) {
     Card(
@@ -140,43 +144,57 @@ private fun AnnouncementCard(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Icono
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(
-                        color = Color.White.copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Campaign,
-                    contentDescription = "Announcement icon",
-                    tint = Color.White
+        Column {
+            // Imagen del anuncio
+            if (!announcement.image.isNullOrEmpty()) {
+                GlideImage(
+                    model = announcement.image,
+                    contentDescription = "Announcement image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+                    contentScale = ContentScale.Crop
                 )
             }
+            
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Icono
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            color = Color.White.copy(alpha = 0.12f),
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Campaign,
+                        contentDescription = "Announcement icon",
+                        tint = Color.White
+                    )
+                }
 
-            Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
-            // Titulo
-            Text(
-                text = announcementTitle,
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
-                modifier = Modifier.weight(1f)
-            )
+                // Titulo
+                Text(
+                    text = announcement.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    modifier = Modifier.weight(1f)
+                )
 
-            Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(8.dp))
 
-            // Etiqueta de prioridad
-            val pillColor = when (priority) {
+                // Etiqueta de prioridad
+                val pillColor = when (announcement.priority) {
                 Priority.LOW -> MaterialTheme.colorScheme.tertiary
                 Priority.High -> MaterialTheme.colorScheme.secondary
                 Priority.Urgent -> MaterialTheme.colorScheme.primary
@@ -184,16 +202,17 @@ private fun AnnouncementCard(
             }
 
             Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = pillColor,
-                tonalElevation = 0.dp
-            ) {
-                Text(
-                    text = priority.name,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                )
+                    shape = RoundedCornerShape(16.dp),
+                    color = pillColor,
+                    tonalElevation = 0.dp
+                ) {
+                    Text(
+                        text = announcement.priority.name,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                    )
+                }
             }
         }
     }
