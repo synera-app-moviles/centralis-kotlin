@@ -4,7 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
@@ -15,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -24,6 +28,8 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.centralis_kotlin.chat.presentation.viewmodels.ChatViewModel
 import com.example.centralis_kotlin.chat.domain.models.GroupVisibility
+import com.example.centralis_kotlin.common.components.ImagePicker
+import com.example.centralis_kotlin.common.config.ImageType
 import com.example.centralis_kotlin.profile.presentation.viewmodels.ProfileViewModel
 
 // Paleta
@@ -48,6 +54,7 @@ fun CreateGroupView(
     var groupName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var query by remember { mutableStateOf("") }
+    var groupImageUrl by remember { mutableStateOf<String?>(null) }
     var visibility by remember { mutableStateOf(GroupVisibility.PUBLIC) } // si luego quieres selector
 
     // 1) Cargar perfiles reales
@@ -78,11 +85,12 @@ fun CreateGroupView(
         modifier = Modifier
             .fillMaxSize()
             .background(Bg)
-            .padding(16.dp)
     ) {
-        // Header
+        // Header fijo (no scrolleable)
         Row(
-            Modifier.fillMaxWidth(),
+            Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { nav.popBackStack() }) {
@@ -97,6 +105,14 @@ fun CreateGroupView(
             )
             Spacer(Modifier.size(58.dp))
         }
+
+        // Contenido scrolleable
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+        ) {
 
         Spacer(Modifier.height(12.dp))
 
@@ -140,16 +156,42 @@ fun CreateGroupView(
 
         Spacer(Modifier.height(12.dp))
 
-        // (Opcional) Upload image – pendiente de flujo real
-        OutlinedButton(
-            onClick = { /* TODO: selector de imagen si lo agregan */ },
-            colors = ButtonDefaults.outlinedButtonColors(containerColor = CardBg),
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Icon(Icons.Default.Image, contentDescription = null, tint = Color.White)
-            Spacer(Modifier.width(8.dp))
-            Text("Upload image", color = Color.White)
+        // Image picker for group icon
+        ImagePicker(
+            imageType = ImageType.AVATAR,
+            currentImageUrl = groupImageUrl,
+            onImageUploaded = { imageUrl ->
+                groupImageUrl = imageUrl
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+        
+        // Group icon preview
+        if (!groupImageUrl.isNullOrEmpty()) {
+            Spacer(Modifier.height(16.dp))
+            
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Group Icon Preview:",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                
+                Spacer(Modifier.height(8.dp))
+                
+                GlideImage(
+                    model = groupImageUrl,
+                    contentDescription = "Group icon preview",
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            }
         }
 
         Spacer(Modifier.height(16.dp))
@@ -180,8 +222,8 @@ fun CreateGroupView(
         // Lista real de participantes (desde Profile)
         LazyColumn(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .heightIn(max = 300.dp), // Altura máxima fija para permitir scroll
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(filtered, key = { it.userId }) { profile ->
@@ -225,7 +267,7 @@ fun CreateGroupView(
                     chatVm.createGroup(
                         name = groupName.trim(),
                         description = description.trim().ifBlank { null },
-                        imageUrl = null,
+                        imageUrl = groupImageUrl, // Incluir la imagen subida
                         visibility = GroupVisibility.PUBLIC,
                         selectedUserIds = selectedIds.toList()
                     )
@@ -247,5 +289,9 @@ fun CreateGroupView(
         chatVm.error?.let {
             Text(text = it, color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
         }
+        
+        Spacer(Modifier.height(16.dp)) // Espacio adicional al final
+        
+        } 
     }
 }
