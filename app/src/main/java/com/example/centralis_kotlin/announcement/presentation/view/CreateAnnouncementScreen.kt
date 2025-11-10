@@ -6,7 +6,9 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
@@ -27,6 +29,7 @@ import com.example.centralis_kotlin.announcement.model.Priority
 import com.example.centralis_kotlin.announcement.presentation.viewmodels.AnnouncementViewModel
 import com.example.centralis_kotlin.common.components.ImagePicker
 import com.example.centralis_kotlin.common.config.ImageType
+import com.example.centralis_kotlin.common.SharedPreferencesManager
 import java.util.*
 
 @OptIn(ExperimentalGlideComposeApi::class)
@@ -37,6 +40,7 @@ fun CreateAnnouncementScreen(
     vm: AnnouncementViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val sharedPrefsManager = remember { SharedPreferencesManager(context) }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedPriority by remember { mutableStateOf(Priority.Normal) }
@@ -74,6 +78,7 @@ fun CreateAnnouncementScreen(
             Button(
                 onClick = {
                     if (title.isNotBlank() && description.isNotBlank()) {
+                        val currentUserId = sharedPrefsManager.getUserId() ?: ""
                         val newAnnouncement = Announcement(
                             id = "",
                             title = title,
@@ -81,7 +86,7 @@ fun CreateAnnouncementScreen(
                             image = announcementImageUrl,
                             priority = selectedPriority,
                             createdAt = Date(),
-                            createdBy = "123e4567-e89b-12d3-a456-426614174000", // luego lo traemos de IAM
+                            createdBy = currentUserId,
                             comments = mutableListOf(),
                             seenBy = mutableSetOf()
                         )
@@ -107,6 +112,7 @@ fun CreateAnnouncementScreen(
                 .padding(padding)
                 .fillMaxSize()
                 .background(Color(0xFF160F23))
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
