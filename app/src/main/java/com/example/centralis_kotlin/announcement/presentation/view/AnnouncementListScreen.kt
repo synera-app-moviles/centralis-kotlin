@@ -17,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -48,9 +49,10 @@ fun AnnouncementListScreen(
 
 
     Scaffold(
+        containerColor = Color(0xFF160F23),
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Announcements", color = MaterialTheme.colorScheme.onBackground) },
+                title = { Text("Announcements", color = Color.White) },
                 actions = {
                     // Botón de guardar localmente
                     IconButton(onClick = {
@@ -64,12 +66,13 @@ fun AnnouncementListScreen(
                         Icon(
                             imageVector = Icons.Default.Download,
                             contentDescription = "Guardar localmente",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = Color.White
                         )
                     }
-
-                    
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color(0xFF160F23)
+                )
             )
         },
         floatingActionButton = {
@@ -133,7 +136,7 @@ private fun AnnouncementCard(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = Color(0xFF4A2B61)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -148,7 +151,7 @@ private fun AnnouncementCard(
                 modifier = Modifier
                     .size(48.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        color = Color.White.copy(alpha = 0.12f),
                         shape = RoundedCornerShape(8.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -156,7 +159,7 @@ private fun AnnouncementCard(
                 Icon(
                     imageVector = Icons.Default.Campaign,
                     contentDescription = "Announcement icon",
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = Color.White
                 )
             }
 
@@ -166,7 +169,7 @@ private fun AnnouncementCard(
             Text(
                 text = announcementTitle,
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground,
+                color = Color.White,
                 modifier = Modifier.weight(1f)
             )
 

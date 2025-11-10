@@ -4,6 +4,7 @@ package com.example.centralis_kotlin.announcement.presentation.view
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,9 +12,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
+import androidx.compose.material3.CheckboxDefaults.colors
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -45,15 +48,16 @@ fun AnnouncementDetailScreen(
     }
 
     Scaffold(
+        containerColor = Color(0xFF160F23),
         topBar = {
             TopAppBar(
-                title = { Text(text = "Announcement Detail", color = MaterialTheme.colorScheme.onBackground) },
+                title = { Text(text = "Announcement Detail", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onBackground
+                            tint = Color.White
                         )
                     }
                 },
@@ -64,7 +68,7 @@ fun AnnouncementDetailScreen(
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = "More options",
-                            tint = MaterialTheme.colorScheme.onBackground
+                            tint = Color.White
                         )
                     }
 
@@ -81,16 +85,18 @@ fun AnnouncementDetailScreen(
                             }
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF160F23)
+                )
             )
-
-
         }
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .background(Color(0xFF160F23))
         ) {
             when {
                 isLoading || selected == null -> {
@@ -110,7 +116,7 @@ fun AnnouncementDetailScreen(
                         Text(
                             text = announcement.title,
                             style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = Color.White
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -125,7 +131,7 @@ fun AnnouncementDetailScreen(
                         Text(
                             text = "Publicado: $createdAtText",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            color = Color.White.copy(alpha = 0.7f)
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -134,7 +140,7 @@ fun AnnouncementDetailScreen(
                         Text(
                             text = announcement.description,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = Color.White
                         )
 
                         Spacer(modifier = Modifier.height(20.dp))
@@ -143,7 +149,7 @@ fun AnnouncementDetailScreen(
                         Text(
                             text = "Comentarios",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = Color.White
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))

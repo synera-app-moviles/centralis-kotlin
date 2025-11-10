@@ -33,7 +33,7 @@ fun CreateAnnouncementScreen(
     var selectedPriority by remember { mutableStateOf(Priority.Normal) }
 
     Scaffold(
-        containerColor = Color(0xFF120E1C), // fondo oscuro
+        containerColor = Color(0xFF160F23),
         topBar = {
             TopAppBar(
                 title = {
@@ -51,7 +51,10 @@ fun CreateAnnouncementScreen(
                             tint = Color.White
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF160F23)
+                )
 
             )
         },
@@ -91,7 +94,7 @@ fun CreateAnnouncementScreen(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .background(Color(0xFF120E1C))
+                .background(Color(0xFF160F23))
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -102,8 +105,8 @@ fun CreateAnnouncementScreen(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("Announcement Title", color = Color(0xFFB39DDB)) },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF2A1E4D),
-                    unfocusedContainerColor = Color(0xFF2A1E4D),
+                    focusedContainerColor = Color(0xFF4A2B61),
+                    unfocusedContainerColor = Color(0xFF4A2B61),
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
                     cursorColor = Color.White,
@@ -122,8 +125,8 @@ fun CreateAnnouncementScreen(
                     .height(160.dp),
                 placeholder = { Text("Write the announcement details...", color = Color(0xFFB39DDB)) },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF2A1E4D),
-                    unfocusedContainerColor = Color(0xFF2A1E4D),
+                    focusedContainerColor = Color(0xFF4A2B61),
+                    unfocusedContainerColor = Color(0xFF4A2B61),
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
                     cursorColor = Color.White,
@@ -139,7 +142,7 @@ fun CreateAnnouncementScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2A1E4D),
+                    containerColor = Color(0xFF4A2B61),
                     contentColor = Color(0xFFB39DDB)
                 )
             ) {
