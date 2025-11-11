@@ -239,4 +239,59 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
         super.onCleared()
         sseService.disconnect()
     }
+
+    /**
+     * Actualizar información del grupo
+     */
+    fun updateGroup(groupId: String, name: String, description: String?, imageUrl: String?) {
+        viewModelScope.launch {
+            isLoading = true
+            error = null
+            try {
+                val token = "Bearer ${prefs.getToken()}"
+                val updateRequest = UpdateGroupRequest(name, description, imageUrl)
+                val resp = groupsWebService.updateGroup(groupId, updateRequest, token)
+                
+                withContext(Dispatchers.Main) {
+                    if (resp.isSuccessful) {
+                        // Actualizar el grupo actual con la respuesta
+                        resp.body()?.let { updatedGroup ->
+                            currentGroup = updatedGroup
+                        }
+                    } else {
+                        error = "Error updating group: ${resp.code()}"
+                    }
+                    isLoading = false
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    error = "Network error: ${e.message}"
+                    isLoading = false
+                }
+            }
+        }
+    }
+
+    /**
+     * Eliminar grupo
+     */
+    fun deleteGroup(groupId: String) {
+        viewModelScope.launch {
+            try {
+                val token = "Bearer ${prefs.getToken()}"
+                val resp = groupsWebService.deleteGroup(groupId, token)
+                
+                if (!resp.isSuccessful) {
+                    withContext(Dispatchers.Main) {
+                        error = "Error deleting group: ${resp.code()}"
+                    }
+                }
+                // Si es exitoso, no necesitamos hacer nada más
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    error = "Network error: ${e.message}"
+                }
+            }
+        }
+    }
 }

@@ -23,6 +23,7 @@ object NavigationRoutes {
 
     const val CHAT_CREATE = "createChat"
     const val CHAT_DETAIL = "chatDetail/{chatId}"
+    const val CHAT_EDIT = "editGroup"
 
 
 
