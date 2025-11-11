@@ -145,7 +145,7 @@ fun EventDetailsScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            val avatar = profile.avatarUrl ?: "https://i.pravatar.cc/100?u=${profile.userId}"
+                            val avatar = profile.avatarUrl ?: "https://i.pinimg.com/1200x/b1/fc/14/b1fc14cb1cf646a3a25ad517706831de.jpg"
                             AsyncImage(
                                 model = avatar,
                                 contentDescription = "${profile.firstName} ${profile.lastName} avatar",

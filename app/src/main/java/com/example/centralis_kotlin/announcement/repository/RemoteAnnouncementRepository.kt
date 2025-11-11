@@ -49,19 +49,12 @@ class RemoteAnnouncementRepository : IAnnouncementRepository {
         return api.getAnnouncements().map { it.toDomain() }
     }
 
-    override suspend fun getAnnouncementById(id: String): Announcement? {
-        val dto = api.getAnnouncementById(id)
+    override suspend fun getAnnouncementById(id: String): Announcement {
+        return api.getAnnouncementById(id).toDomain()
+    }
 
-        val comments = try {
-            api.getComments(id).map { it.toDomain() }
-        } catch (t: Throwable) {
-            emptyList()
-        }
-
-        val announcement = dto.toDomain()
-        announcement.comments.clear()
-        announcement.comments.addAll(comments)
-        return announcement
+    suspend fun deleteAnnouncement(id: String) {
+        api.deleteAnnouncement(id)
     }
 
     suspend fun getComments(announcementId: String): List<Comment> {

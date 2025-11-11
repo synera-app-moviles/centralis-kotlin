@@ -16,6 +16,7 @@ import androidx.navigation.navArgument
 import com.example.centralis_kotlin.chat.presentation.views.ChatDetailView
 import com.example.centralis_kotlin.chat.presentation.views.ChatView
 import com.example.centralis_kotlin.chat.presentation.views.CreateGroupView
+import com.example.centralis_kotlin.chat.presentation.views.EditGroupView
 import com.example.centralis_kotlin.common.components.BottomNavigationBar
 import com.example.centralis_kotlin.events.presentation.views.AppNavGraph
 import com.example.centralis_kotlin.profile.presentation.views.ProfileView
@@ -117,6 +118,21 @@ fun MainNavigation(onLogout: () -> Unit) {
                 )
             }
             composable(NavigationRoutes.CHAT_CREATE) { CreateGroupView(navController) }
+
+            // Chat -> Edit Group
+            composable(
+                "${NavigationRoutes.CHAT_EDIT}/{chatId}",
+                arguments = listOf(navArgument("chatId") {
+                    type = NavType.StringType
+                    nullable = false
+                })
+            ) { backStackEntry ->
+                val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
+                EditGroupView(
+                    nav = navController,
+                    groupId = chatId
+                )
+            }
 
 
 

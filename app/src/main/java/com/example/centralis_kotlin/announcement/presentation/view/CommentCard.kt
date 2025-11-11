@@ -7,6 +7,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.centralis_kotlin.announcement.model.Comment
 import java.text.SimpleDateFormat
@@ -22,7 +23,7 @@ fun CommentCard(comment: Comment) {
             .padding(vertical = 4.dp),
         shape = RoundedCornerShape(8.dp),
         tonalElevation = 2.dp,
-        color = MaterialTheme.colorScheme.surface
+        color = Color(0xFF4A2B61)
     ) {
         Column(
             modifier = Modifier.padding(12.dp)
@@ -47,7 +48,7 @@ fun CommentCard(comment: Comment) {
                 Text(
                     text = createdAtText,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = Color.White.copy(alpha = 0.6f)
                 )
             }
 
@@ -57,7 +58,7 @@ fun CommentCard(comment: Comment) {
             Text(
                 text = comment.content,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                color = Color.White
             )
         }
     }

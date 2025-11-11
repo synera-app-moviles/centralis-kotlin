@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
@@ -25,6 +26,7 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.centralis_kotlin.chat.domain.models.MessageStatus
 import com.example.centralis_kotlin.chat.presentation.viewmodels.ChatDetailViewModel
+import com.example.centralis_kotlin.common.navigation.NavigationRoutes
 import com.example.centralis_kotlin.common.SharedPreferencesManager
 import com.example.centralis_kotlin.profile.presentation.viewmodels.ProfileViewModel
 
@@ -49,6 +51,10 @@ fun ChatDetailView(
     val vm = remember { ChatDetailViewModel(context) }
     val prefs = remember { SharedPreferencesManager(context) }
     val myUserId = remember { prefs.getUserId() }
+
+    // Estados para el menú
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
 
     // 1) Cargar mensajes del grupo
     LaunchedEffect(chatId) { vm.load(chatId) }
@@ -111,8 +117,37 @@ fun ChatDetailView(
                 }
             }
 
-            IconButton(onClick = { /* menú overflow */ }) {
-                Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.White)
+            // Solo mostrar el menú si el usuario actual es el creador del grupo
+            if (vm.currentGroup?.createdBy == myUserId && !myUserId.isNullOrEmpty()) {
+                Box {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "More options",
+                            tint = Color.White
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Edit") },
+                            onClick = {
+                                expanded = false
+                                nav.navigate("${NavigationRoutes.CHAT_EDIT}/$chatId")
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Delete", color = Color.Red) },
+                            onClick = {
+                                expanded = false
+                                showDeleteDialog = true
+                            }
+                        )
+                    }
+                }
             }
         }
 
@@ -240,5 +275,33 @@ fun ChatDetailView(
                 }
             }
         }
+    }
+
+    // Diálogo de confirmación para eliminar grupo
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Group") },
+            text = { Text("Are you sure you want to delete this group? This action cannot be undone and all messages will be permanently lost.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        vm.deleteGroup(chatId)
+                        showDeleteDialog = false
+                        // Navegar de vuelta al chat principal
+                        nav.navigate(NavigationRoutes.CHAT) {
+                            popUpTo(NavigationRoutes.CHAT) { inclusive = true }
+                        }
+                    }
+                ) {
+                    Text("Delete", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
