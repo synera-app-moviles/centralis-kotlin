@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 
+
+
 private val CentralisDarkColorScheme = darkColorScheme(
     primary = CentralisPrimary,
     secondary = CentralisPlaceholder,
@@ -41,7 +43,8 @@ private val CentralisLightColorScheme = lightColorScheme(
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
-    tertiary = Pink80
+    tertiary = Pink80,
+    background = CentralisSecondary,
 )
 
 private val LightColorScheme = lightColorScheme(

@@ -13,3 +13,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+.idea/
+!app/src/main/res/xml/file_paths.xml
+
+# Firebase config - NUNCA subir a repositorio público
+app/google-services.json

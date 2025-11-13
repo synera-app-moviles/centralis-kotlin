@@ -69,7 +69,7 @@ class ChatViewModel(context: Context) : ViewModel() {
                 }
                 val members = (selectedUserIds + me).distinct()
                 val token = "Bearer ${prefs.getToken()}"
-                val req = CreateGroupRequest(name, description, null, visibility, members,me)
+                val req = CreateGroupRequest(name, description, imageUrl, visibility, members,me)
                 val resp = groupsWs.createGroup(req, token)
                 withContext(Dispatchers.Main) {
                     if (resp.isSuccessful) {

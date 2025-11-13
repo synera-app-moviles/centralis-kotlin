@@ -111,8 +111,8 @@ class AnnouncementViewModel(
     fun deleteAnnouncement(id: String) {
         viewModelScope.launch {
             try {
-                repository.delete(id)
-                loadAnnouncements()
+                (repository as? RemoteAnnouncementRepository)?.deleteAnnouncement(id)
+                loadAnnouncements() // Recargar la lista después de eliminar
             } catch (e: Exception) {
                 e.printStackTrace()
             }

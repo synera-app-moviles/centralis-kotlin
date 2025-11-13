@@ -12,6 +12,8 @@ object NavigationRoutes {
     const val ANNOUNCEMENT_CREATE = "announcement_create"
     const val ANNOUNCEMENT_EDIT = "announcement_edit"
 
+    const val SAVED_ANNOUNCEMENTS = "saved_announcements"
+
 
     // Main app routes
     const val PROFILE = "profile"
@@ -21,6 +23,7 @@ object NavigationRoutes {
 
     const val CHAT_CREATE = "createChat"
     const val CHAT_DETAIL = "chatDetail/{chatId}"
+    const val CHAT_EDIT = "editGroup"
 
 
 

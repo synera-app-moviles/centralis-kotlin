@@ -20,16 +20,22 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.navigation.NavHostController
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import com.example.centralis_kotlin.iam.presentation.viewmodels.IAMViewModel
+import com.example.centralis_kotlin.common.components.CustomDropDownMenu
+import com.example.centralis_kotlin.profile.models.Position
+import com.example.centralis_kotlin.profile.models.Department
+import com.example.centralis_kotlin.common.components.AvatarImageView
 
-/*
 @Composable
 fun TextFieldView(
     placeholder: String,
     value: String,
     onValueChange: (String) -> Unit,
     textStyle: TextStyle,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    visualTransformation: VisualTransformation = VisualTransformation.None
 ) {
     Box(modifier = modifier) {
         if (value.isEmpty()) {
@@ -42,10 +48,11 @@ fun TextFieldView(
             value = value,
             onValueChange = onValueChange,
             textStyle = textStyle,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            visualTransformation = visualTransformation
         )
     }
-}*/
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +70,9 @@ fun SignUpView(
     val textName = remember { mutableStateOf("") }
     val textLastName = remember { mutableStateOf("") }
     val textEmail = remember { mutableStateOf("") }
+    var selectedPosition by remember { mutableStateOf<Position?>(null) }
+    var selectedDepartment by remember { mutableStateOf<Department?>(null) }
+    var avatarUrl by remember { mutableStateOf<String?>(null) }
     
     // Observar el resultado del registro
     LaunchedEffect(iamViewModel.signUpResult) {
@@ -133,6 +143,26 @@ fun SignUpView(
                             .padding(start = 16.dp,)
                     )
                 }
+                
+                // Avatar selector
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp, horizontal = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    AvatarImageView(
+                        imageUrl = avatarUrl,
+                        onImageChange = { newUrl ->
+                            avatarUrl = newUrl
+                        },
+                        onImageRemoved = {
+                            avatarUrl = null
+                        },
+                        size = 100.dp
+                    )
+                }
+                
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -272,6 +302,26 @@ fun SignUpView(
                     )
                 }
                 
+                // Position Dropdown
+                CustomDropDownMenu(
+                    label = "Position",
+                    placeholder = "Select your position",
+                    selectedOption = selectedPosition,
+                    options = Position.values().toList(),
+                    onOptionSelected = { selectedPosition = it },
+                    getDisplayText = { it.displayName }
+                )
+                
+                // Department Dropdown
+                CustomDropDownMenu(
+                    label = "Department",
+                    placeholder = "Select your department",
+                    selectedOption = selectedDepartment,
+                    options = Department.values().toList(),
+                    onOptionSelected = { selectedDepartment = it },
+                    getDisplayText = { it.displayName }
+                )
+                
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -302,7 +352,8 @@ fun SignUpView(
                                 color = Color(0xFF302149),
                                 shape = RoundedCornerShape(8.dp)
                             )
-                            .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,)
+                            .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,),
+                        visualTransformation = PasswordVisualTransformation()
                     )
                 }
                 Column(
@@ -335,7 +386,8 @@ fun SignUpView(
                                 color = Color(0xFF302149),
                                 shape = RoundedCornerShape(8.dp)
                             )
-                            .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,)
+                            .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,),
+                        visualTransformation = PasswordVisualTransformation()
                     )
                 }
             }
@@ -392,6 +444,22 @@ fun SignUpView(
                 }
             }
             
+            // Mensaje informativo sobre el avatar
+            if (avatarUrl != null) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Text(
+                        text = "✓ Avatar seleccionado. Podrás verlo en tu perfil después del registro.",
+                        color = Color(0xFF4CAF50),
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
+            
             // Mostrar errores del ViewModel
             iamViewModel.signUpError?.let { error ->
                 Column(
@@ -407,6 +475,37 @@ fun SignUpView(
                     )
                 }
             }
+            
+            // Validación de campos obligatorios
+            if (textUserName.value.isNotBlank() || textPassword.value.isNotBlank() || 
+                textName.value.isNotBlank() || textLastName.value.isNotBlank() || 
+                textEmail.value.isNotBlank()) {
+                
+                val missingFields = mutableListOf<String>()
+                if (textUserName.value.isBlank()) missingFields.add("Username")
+                if (textName.value.isBlank()) missingFields.add("Name")
+                if (textLastName.value.isBlank()) missingFields.add("Last Name")
+                if (textEmail.value.isBlank()) missingFields.add("Email")
+                if (selectedPosition == null) missingFields.add("Position")
+                if (selectedDepartment == null) missingFields.add("Department")
+                if (textPassword.value.isBlank()) missingFields.add("Password")
+                if (textPassword1.value.isBlank()) missingFields.add("Confirm Password")
+                
+                if (missingFields.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        Text(
+                            text = "Missing fields: ${missingFields.joinToString(", ")}",
+                            color = Color(0xFFFFAA00),
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
+                }
+            }
 
 
             OutlinedButton(
@@ -417,7 +516,9 @@ fun SignUpView(
                         textPassword1.value.isNotBlank() &&
                         textName.value.isNotBlank() &&
                         textLastName.value.isNotBlank() &&
-                        textEmail.value.isNotBlank()) {
+                        textEmail.value.isNotBlank() &&
+                        selectedPosition != null &&
+                        selectedDepartment != null) {
                         
                         if (textPassword.value == textPassword1.value) {
                             iamViewModel.signUp(
@@ -432,7 +533,16 @@ fun SignUpView(
                         }
                     }
                 },
-                enabled = !iamViewModel.isSignUpLoading,
+                enabled = !iamViewModel.isSignUpLoading && 
+                         textUserName.value.isNotBlank() && 
+                         textPassword.value.isNotBlank() && 
+                         textPassword1.value.isNotBlank() &&
+                         textName.value.isNotBlank() &&
+                         textLastName.value.isNotBlank() &&
+                         textEmail.value.isNotBlank() &&
+                         selectedPosition != null &&
+                         selectedDepartment != null &&
+                         textPassword.value == textPassword1.value,
                 border = BorderStroke(0.dp, Color.Transparent),
                 colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent),
                 contentPadding = PaddingValues(),
@@ -441,7 +551,21 @@ fun SignUpView(
                     .clip(shape = RoundedCornerShape(8.dp))
                     .fillMaxWidth()
                     .background(
-                        color = if (iamViewModel.isSignUpLoading) Color(0xFF823DF9).copy(alpha = 0.6f) else Color(0xFF823DF9),
+                        color = if (iamViewModel.isSignUpLoading) {
+                            Color(0xFF823DF9).copy(alpha = 0.6f)
+                        } else if (textUserName.value.isNotBlank() && 
+                                  textPassword.value.isNotBlank() && 
+                                  textPassword1.value.isNotBlank() &&
+                                  textName.value.isNotBlank() &&
+                                  textLastName.value.isNotBlank() &&
+                                  textEmail.value.isNotBlank() &&
+                                  selectedPosition != null &&
+                                  selectedDepartment != null &&
+                                  textPassword.value == textPassword1.value) {
+                            Color(0xFF823DF9)
+                        } else {
+                            Color(0xFF823DF9).copy(alpha = 0.4f)
+                        },
                         shape = RoundedCornerShape(8.dp)
                     )
             ){

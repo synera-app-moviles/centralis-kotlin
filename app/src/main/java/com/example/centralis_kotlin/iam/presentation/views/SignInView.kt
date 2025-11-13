@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavHostController
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.example.centralis_kotlin.iam.presentation.viewmodels.IAMViewModel
 
 
@@ -174,7 +175,8 @@ fun SignInView(
                                 color = Color(0xFF302149),
                                 shape = RoundedCornerShape(8.dp)
                             )
-                            .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,)
+                            .padding(top = 16.dp,bottom = 16.dp,start = 16.dp,end = 32.dp,),
+                        visualTransformation = PasswordVisualTransformation()
                     )
                 }
                 Row(

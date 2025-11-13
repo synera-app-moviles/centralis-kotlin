@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.centralis_kotlin.chat.domain.models.*
+import com.example.centralis_kotlin.chat.services.SseService
 import com.example.centralis_kotlin.common.RetrofitClient
 import com.example.centralis_kotlin.common.SharedPreferencesManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.getValue
@@ -20,15 +22,21 @@ import kotlinx.coroutines.coroutineScope
 class ChatDetailViewModel(context: Context) : ViewModel() {
 
     private val msgsWebService = RetrofitClient.chatMessagesWebService
+    private val groupsWebService = RetrofitClient.chatGroupsWebService
     private val prefs = SharedPreferencesManager(context)
     private val profileWs = RetrofitClient.profileWebService
+    private val sseService = SseService()
     val currentUserId: String? = prefs.getUserId()
     val profiles = mutableStateMapOf<String, ProfileResponse>()
 
     var messages: List<MessageResponse> by mutableStateOf(emptyList())
+    var currentGroup: GroupResponse? by mutableStateOf(null)
     var isLoading by mutableStateOf(false)
     var sending by mutableStateOf(false)
     var error: String? by mutableStateOf(null)
+    
+    // SSE connection state
+    val connectionState: StateFlow<SseConnectionState> = sseService.connectionState
 
 
     fun profileOf(userId: String): ProfileResponse? = profiles[userId]
@@ -57,6 +65,12 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
                         coroutineScope {
                             uniqueSenders.map { uid -> async { ensureProfile(uid, tok) } }.forEach { it.await() }
                         }
+                        
+                        // Cargar información del grupo
+                        launch { loadGroupInfo(groupId, token) }
+                        
+                        // Conectar a SSE para recibir mensajes en tiempo real
+                        setupSseConnection(groupId)
                     } else {
                         error = "Error ${resp.code()}: ${resp.message()}"
                         if (resp.code() == 401) prefs.clearAll()
@@ -67,6 +81,19 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
             } finally {
                 withContext(Dispatchers.Main) { isLoading = false }
             }
+        }
+    }
+
+    private suspend fun loadGroupInfo(groupId: String, token: String) {
+        try {
+            val response = groupsWebService.getGroupById(groupId, token)
+            if (response.isSuccessful) {
+                withContext(Dispatchers.Main) {
+                    currentGroup = response.body()
+                }
+            }
+        } catch (e: Exception) {
+            // No mostrar error, es opcional
         }
     }
 
@@ -152,6 +179,118 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { error = "Error de conexión: ${e.message}" }
+            }
+        }
+    }
+    
+    /**
+     * Configura la conexión SSE y escucha mensajes en tiempo real
+     */
+    private fun setupSseConnection(groupId: String) {
+        val userId = currentUserId ?: return
+        val token = prefs.getToken() ?: return
+        
+        // Conectar a SSE con token de autenticación
+        sseService.connectToGroup(groupId, userId, token)
+        
+        // Observar mensajes en tiempo real
+        viewModelScope.launch {
+            sseService.messageFlow.collect { sseMessage ->
+                withContext(Dispatchers.Main) {
+                    // Solo agregar si el mensaje no es del usuario actual (evitar duplicados)
+                    if (sseMessage.senderId != currentUserId) {
+                        // Convertir SseMessage a MessageResponse
+                        val messageResponse = MessageResponse(
+                            messageId = sseMessage.messageId,
+                            groupId = sseMessage.groupId,
+                            senderId = sseMessage.senderId,
+                            body = sseMessage.body,
+                            status = MessageStatus.SENT,
+                            sentAt = sseMessage.sentAt,
+                            editedAt = null
+                        )
+                        
+                        // Agregar mensaje a la lista
+                        messages = messages + messageResponse
+                        
+                        // Asegurar que tenemos el perfil del sender
+                        val token = prefs.getToken().orEmpty()
+                        ensureProfile(sseMessage.senderId, token)
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Reintentar conexión SSE
+     */
+    fun retryConnection() {
+        val (groupId, userId, token) = sseService.getCurrentConnectionInfo()
+        if (groupId != null && userId != null && token != null) {
+            sseService.connectToGroup(groupId, userId, token)
+        }
+    }
+    
+    /**
+     * Cleanup de recursos SSE
+     */
+    override fun onCleared() {
+        super.onCleared()
+        sseService.disconnect()
+    }
+
+    /**
+     * Actualizar información del grupo
+     */
+    fun updateGroup(groupId: String, name: String, description: String?, imageUrl: String?) {
+        viewModelScope.launch {
+            isLoading = true
+            error = null
+            try {
+                val token = "Bearer ${prefs.getToken()}"
+                val updateRequest = UpdateGroupRequest(name, description, imageUrl)
+                val resp = groupsWebService.updateGroup(groupId, updateRequest, token)
+                
+                withContext(Dispatchers.Main) {
+                    if (resp.isSuccessful) {
+                        // Actualizar el grupo actual con la respuesta
+                        resp.body()?.let { updatedGroup ->
+                            currentGroup = updatedGroup
+                        }
+                    } else {
+                        error = "Error updating group: ${resp.code()}"
+                    }
+                    isLoading = false
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    error = "Network error: ${e.message}"
+                    isLoading = false
+                }
+            }
+        }
+    }
+
+    /**
+     * Eliminar grupo
+     */
+    fun deleteGroup(groupId: String) {
+        viewModelScope.launch {
+            try {
+                val token = "Bearer ${prefs.getToken()}"
+                val resp = groupsWebService.deleteGroup(groupId, token)
+                
+                if (!resp.isSuccessful) {
+                    withContext(Dispatchers.Main) {
+                        error = "Error deleting group: ${resp.code()}"
+                    }
+                }
+                // Si es exitoso, no necesitamos hacer nada más
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    error = "Network error: ${e.message}"
+                }
             }
         }
     }

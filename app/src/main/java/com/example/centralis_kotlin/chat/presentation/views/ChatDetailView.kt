@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
@@ -25,11 +26,13 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.centralis_kotlin.chat.domain.models.MessageStatus
 import com.example.centralis_kotlin.chat.presentation.viewmodels.ChatDetailViewModel
+import com.example.centralis_kotlin.common.navigation.NavigationRoutes
 import com.example.centralis_kotlin.common.SharedPreferencesManager
 import com.example.centralis_kotlin.profile.presentation.viewmodels.ProfileViewModel
 
 // Paleta (igual a la tuya)
 import com.example.centralis_kotlin.chat.domain.models.MessageUI
+import com.example.centralis_kotlin.chat.domain.models.SseConnectionState
 
 // Paleta consistente con tus pantallas
 private val Bg = Color(0xFF160F23)
@@ -49,6 +52,10 @@ fun ChatDetailView(
     val prefs = remember { SharedPreferencesManager(context) }
     val myUserId = remember { prefs.getUserId() }
 
+    // Estados para el menú
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
+
     // 1) Cargar mensajes del grupo
     LaunchedEffect(chatId) { vm.load(chatId) }
 
@@ -57,6 +64,7 @@ fun ChatDetailView(
     val isLoading = vm.isLoading
     val sending = vm.sending
     val error = vm.error
+    val connectionState by vm.connectionState.collectAsState()
 
 
 
@@ -79,29 +87,67 @@ fun ChatDetailView(
             }
 
 
-            // Avatar del header: otro participante si existe, si no el mío
-            val otherSenderId = messages.firstOrNull { it.senderId != vm.currentUserId }?.senderId
-            val headerProfile = vm.profileOf(otherSenderId ?: (vm.currentUserId ?: ""))
+            // Avatar del grupo (misma imagen que en ChatView)
             GlideImage(
-                model = headerProfile?.avatarUrl
-                    ?: "https://i.pinimg.com/736x/e5/c1/c3/e5c1c34fe65d23b9a876b3dcdfd27ba7.jpg",
-                contentDescription = null,
+                model = vm.currentGroup?.imageUrl ?: "https://i.imgur.com/xDofyTr.png",
+                contentDescription = "Group avatar",
                 modifier = Modifier.size(36.dp).clip(CircleShape)
             )
 
             Spacer(Modifier.width(10.dp))
 
 
-            Text(
-                text = "Chat", // o pásalo por parámetro si lo tienes
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                modifier = Modifier.weight(1f)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = vm.currentGroup?.name ?: "Chat", // o pásalo por parámetro si lo tienes
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp
+                )
+            }
 
-            IconButton(onClick = { /* menú overflow */ }) {
-                Icon(Icons.Default.MoreVert, contentDescription = "More", tint = Color.White)
+            // Botón de reintentar si hay error de conexión
+            if (connectionState is SseConnectionState.Error) {
+                IconButton(onClick = { vm.retryConnection() }) {
+                    Icon(
+                        imageVector = Icons.Default.Send, // Usar un icono de refresh si tienes
+                        contentDescription = "Reintentar conexión",
+                        tint = Color(0xFFFF5252)
+                    )
+                }
+            }
+
+            // Solo mostrar el menú si el usuario actual es el creador del grupo
+            if (vm.currentGroup?.createdBy == myUserId && !myUserId.isNullOrEmpty()) {
+                Box {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "More options",
+                            tint = Color.White
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Edit") },
+                            onClick = {
+                                expanded = false
+                                nav.navigate("${NavigationRoutes.CHAT_EDIT}/$chatId")
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Delete", color = Color.Red) },
+                            onClick = {
+                                expanded = false
+                                showDeleteDialog = true
+                            }
+                        )
+                    }
+                }
             }
         }
 
@@ -229,5 +275,33 @@ fun ChatDetailView(
                 }
             }
         }
+    }
+
+    // Diálogo de confirmación para eliminar grupo
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Group") },
+            text = { Text("Are you sure you want to delete this group? This action cannot be undone and all messages will be permanently lost.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        vm.deleteGroup(chatId)
+                        showDeleteDialog = false
+                        // Navegar de vuelta al chat principal
+                        nav.navigate(NavigationRoutes.CHAT) {
+                            popUpTo(NavigationRoutes.CHAT) { inclusive = true }
+                        }
+                    }
+                ) {
+                    Text("Delete", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

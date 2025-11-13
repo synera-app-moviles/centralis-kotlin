@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("kotlin-kapt")  // Para Room Database
+    id("com.google.gms.google-services") // Firebase plugin
 }
 
 android {
@@ -30,6 +32,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        // Habilitar desugaring para usar java.time APIs en minSdk < 26
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -61,6 +65,8 @@ dependencies {
 
     // Glide para Compose: Para cargar imágenes desde URLs
     implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("androidx.compose.runtime:runtime-livedata")
 
     // Retrofit: Para hacer peticiones HTTP a APIs
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
@@ -68,7 +74,43 @@ dependencies {
     // Gson Converter: Para convertir JSON automáticamente a objetos Kotlin
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
 
+    // OkHttp Logging Interceptor: Para debug de peticiones HTTP
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+
+    // Cloudinary para subir imágenes
+    implementation("com.cloudinary:cloudinary-android:2.8.0")
+    
+    // Activity Result API para seleccionar imágenes
+    implementation("androidx.activity:activity-compose:1.9.3")
+    
+    // Para permisos de tiempo de ejecución
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+
+    // Room Database (versiones específicas para compatibilidad)
+    val room_version = "2.6.1"
+    implementation("androidx.room:room-runtime:$room_version")
+    implementation("androidx.room:room-ktx:$room_version")
+    kapt("androidx.room:room-compiler:$room_version")
+
+    // ViewModel Compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+
+    // Firebase SOLO para FCM token (sin analytics)
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-messaging-ktx")
+
+    // OkHttp SSE para chat en tiempo real
+    implementation("com.squareup.okhttp3:okhttp-sse:4.12.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    
+    // JSON parsing para SSE
+    implementation("org.json:json:20240303")
+    
+    // Coroutines para SSE
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -77,4 +119,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // Desugaring library to use java.time on older Android versions
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 }
