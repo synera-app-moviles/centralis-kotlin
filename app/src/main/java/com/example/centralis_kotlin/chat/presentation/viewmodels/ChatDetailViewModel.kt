@@ -23,6 +23,7 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
 
     private val msgsWebService = RetrofitClient.chatMessagesWebService
     private val groupsWebService = RetrofitClient.chatGroupsWebService
+    private val chatImagesApi = RetrofitClient.chatImagesApi
     private val prefs = SharedPreferencesManager(context)
     private val profileWs = RetrofitClient.profileWebService
     private val sseService = SseService()
@@ -30,9 +31,11 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
     val profiles = mutableStateMapOf<String, ProfileResponse>()
 
     var messages: List<MessageResponse> by mutableStateOf(emptyList())
+    var chatImages: List<ChatImageResponse> by mutableStateOf(emptyList())
     var currentGroup: GroupResponse? by mutableStateOf(null)
     var isLoading by mutableStateOf(false)
     var sending by mutableStateOf(false)
+    var sendingImage by mutableStateOf(false)
     var error: String? by mutableStateOf(null)
     
     // SSE connection state
@@ -69,6 +72,9 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
                         // Cargar información del grupo
                         launch { loadGroupInfo(groupId, token) }
                         
+                        // Cargar imágenes del grupo
+                        launch { loadChatImages(groupId, token) }
+                        
                         // Conectar a SSE para recibir mensajes en tiempo real
                         setupSseConnection(groupId)
                     } else {
@@ -94,6 +100,19 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
             }
         } catch (e: Exception) {
             // No mostrar error, es opcional
+        }
+    }
+
+    private suspend fun loadChatImages(groupId: String, token: String) {
+        try {
+            val response = chatImagesApi.getGroupImages(groupId, token)
+            if (response.isSuccessful) {
+                withContext(Dispatchers.Main) {
+                    chatImages = response.body().orEmpty().filter { it.isVisible }
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("ChatDetailVM", "Error cargando imágenes: ${e.message}")
         }
     }
 
@@ -291,6 +310,51 @@ class ChatDetailViewModel(context: Context) : ViewModel() {
                 withContext(Dispatchers.Main) {
                     error = "Network error: ${e.message}"
                 }
+            }
+        }
+    }
+
+    /**
+     * Compartir imagen en el chat
+     */
+    fun shareImage(groupId: String, imageUrl: String) {
+        if (imageUrl.isBlank()) return
+        viewModelScope.launch {
+            sendingImage = true
+            error = null
+            try {
+                val token = "Bearer ${prefs.getToken()}"
+                val uid = prefs.getUserId()
+                if (token.isBlank() || uid.isNullOrBlank()) {
+                    error = "No hay sesión (token/userId)"
+                    return@launch
+                }
+                
+                val imageRequest = ChatImageRequest(
+                    senderId = uid,
+                    imageUrl = imageUrl
+                )
+                
+                val resp = chatImagesApi.shareImage(token, groupId, imageRequest)
+                withContext(Dispatchers.Main) {
+                    if (resp.isSuccessful) {
+                        val imageResponse = resp.body()
+                        if (imageResponse != null) {
+                            // Agregar la imagen a la lista local inmediatamente
+                            chatImages = chatImages + imageResponse
+                        }
+                        android.util.Log.d("ChatDetailVM", "Image shared successfully: ${imageResponse?.imageId}")
+                    } else {
+                        error = "Error al compartir imagen: ${resp.code()}: ${resp.message()}"
+                        if (resp.code() == 401) prefs.clearAll()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) { 
+                    error = "Error de conexión al compartir imagen: ${e.message}" 
+                }
+            } finally {
+                withContext(Dispatchers.Main) { sendingImage = false }
             }
         }
     }
