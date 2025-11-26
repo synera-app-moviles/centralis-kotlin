@@ -14,6 +14,11 @@ import androidx.compose.foundation.shape.*
 import androidx.compose.foundation.text.*
 import androidx.compose.material.*
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,6 +34,7 @@ import androidx.navigation.NavHostController
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import com.example.centralis_kotlin.iam.presentation.viewmodels.IAMViewModel
 
 
@@ -39,10 +45,11 @@ fun SignInView(
 ) {
     val context = LocalContext.current
     val iamViewModel = remember { IAMViewModel(context) }
-    
+
     val textUsername= remember { mutableStateOf("") }
     val textPassword = remember { mutableStateOf("") }
-    
+    var showPassword by remember { mutableStateOf(false) }
+
     // Observar el resultado del login
     LaunchedEffect(iamViewModel.loginResult) {
         iamViewModel.loginResult?.let { result ->
@@ -192,7 +199,7 @@ fun SignInView(
                             .padding(end = 3.dp,)
                     )
                     TextButton(
-                        onClick = { 
+                        onClick = {
                             // Navegar a SignUpView
                             nav.navigate("SignUpView")
                         },
@@ -204,7 +211,7 @@ fun SignInView(
                         )
                     }
                 }
-                
+
                 // Mostrar errores
                 iamViewModel.loginError?.let { error ->
                     Column(
@@ -220,7 +227,7 @@ fun SignInView(
                         )
                     }
                 }
-                
+
                 OutlinedButton(
                     onClick = {
                         if (textUsername.value.isNotBlank() && textPassword.value.isNotBlank()) {
