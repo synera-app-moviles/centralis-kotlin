@@ -58,23 +58,6 @@ fun AnnouncementListScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Announcements", color = Color.White) },
-                actions = {
-                    // Botón de guardar localmente
-                    IconButton(onClick = {
-                        coroutineScope.launch {
-                            announcementsState.forEach { announcement ->
-                                localRepo.saveAnnouncement(announcement)
-                            }
-                            Toast.makeText(context, "Anuncios guardados localmente", Toast.LENGTH_SHORT).show()
-                        }
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Download,
-                            contentDescription = "Guardar localmente",
-                            tint = Color.White
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color(0xFF160F23)
                 )

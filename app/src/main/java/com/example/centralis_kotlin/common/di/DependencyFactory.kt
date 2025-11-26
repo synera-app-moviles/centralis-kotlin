@@ -11,13 +11,14 @@
             import com.example.centralis_kotlin.events.service.EventApiService
             import com.example.centralis_kotlin.common.RetrofitClient
             import com.example.centralis_kotlin.common.SharedPreferencesManager
+            import com.example.centralis_kotlin.iam.presentation.viewmodels.IAMViewModel
             import java.util.UUID
 
             /**
              * Factory para crear dependencias manualmente (sin Hilt)
              * Patrón Singleton simple con lazy initialization
              */
-            object DependencyFactory {
+                object DependencyFactory {
 
                 @Volatile
                 private var database: CentralisDatabase? = null
@@ -85,6 +86,10 @@
                         eventRepository = getEventRepository(context),
                         currentUserId = currentUserId
                     )
+                }
+
+                fun createIamViewModel(context: Context): IAMViewModel {
+                    return IAMViewModel(context)
                 }
 
                 /**
