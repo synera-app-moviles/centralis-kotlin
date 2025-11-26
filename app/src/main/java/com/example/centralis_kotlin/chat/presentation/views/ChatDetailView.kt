@@ -7,8 +7,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
@@ -26,8 +26,11 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.centralis_kotlin.chat.domain.models.MessageStatus
 import com.example.centralis_kotlin.chat.presentation.viewmodels.ChatDetailViewModel
+import com.example.centralis_kotlin.chat.presentation.components.ChatImageItem
 import com.example.centralis_kotlin.common.navigation.NavigationRoutes
 import com.example.centralis_kotlin.common.SharedPreferencesManager
+import com.example.centralis_kotlin.common.components.ImagePicker
+import com.example.centralis_kotlin.common.config.ImageType
 import com.example.centralis_kotlin.profile.presentation.viewmodels.ProfileViewModel
 
 // Paleta (igual a la tuya)
@@ -55,14 +58,17 @@ fun ChatDetailView(
     // Estados para el menú
     var showDeleteDialog by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
+    var showImagePicker by remember { mutableStateOf(false) }
 
     // 1) Cargar mensajes del grupo
     LaunchedEffect(chatId) { vm.load(chatId) }
 
     // 2) Estados expuestos por el VM
     val messages = vm.messages                // List<MessageResponse>
+    val chatImages = vm.chatImages           // List<ChatImageResponse>
     val isLoading = vm.isLoading
     val sending = vm.sending
+    val sendingImage = vm.sendingImage
     val error = vm.error
     val connectionState by vm.connectionState.collectAsState()
 
@@ -230,6 +236,15 @@ fun ChatDetailView(
                 }
             }
 
+            // Mostrar imágenes del chat
+            items(chatImages, key = { it.imageId }) { image ->
+                ChatImageItem(
+                    image = image,
+                    isMe = image.senderId == vm.currentUserId,
+                    profile = vm.profileOf(image.senderId)
+                )
+            }
+
         }
 
         // Barra de input: ahora envía usando el VM
@@ -252,7 +267,20 @@ fun ChatDetailView(
                     unfocusedTextColor = Color.White
                 ),
                 trailingIcon = {
-                    Icon(Icons.Default.AttachFile, contentDescription = "Attach", tint = Muted)
+                    IconButton(
+                        onClick = { showImagePicker = true },
+                        enabled = !sendingImage
+                    ) {
+                        if (sendingImage) {
+                            CircularProgressIndicator(
+                                color = Muted,
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(Icons.Default.Image, contentDescription = "Send Image", tint = Muted)
+                        }
+                    }
                 }
             )
             Spacer(Modifier.width(8.dp))
@@ -301,6 +329,18 @@ fun ChatDetailView(
                 TextButton(onClick = { showDeleteDialog = false }) {
                     Text("Cancel")
                 }
+            }
+        )
+    }
+
+    // ImagePicker para seleccionar y compartir imágenes
+    if (showImagePicker) {
+        ImagePicker(
+            imageType = ImageType.CHAT,
+            currentImageUrl = null,
+            onImageUploaded = { imageUrl ->
+                showImagePicker = false
+                vm.shareImage(chatId, imageUrl)
             }
         )
     }

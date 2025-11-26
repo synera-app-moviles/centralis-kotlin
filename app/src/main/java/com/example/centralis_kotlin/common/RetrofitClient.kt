@@ -2,6 +2,7 @@ package com.example.centralis_kotlin.common
 
 import com.example.centralis_kotlin.chat.services.ChatGroupsWebService
 import com.example.centralis_kotlin.chat.services.ChatMessagesWebService
+import com.example.centralis_kotlin.chat.services.ChatImagesApi
 import com.example.centralis_kotlin.iam.services.IAMWebService
 import com.example.centralis_kotlin.profile.services.ProfileWebService
 import kotlin.getValue
@@ -39,6 +40,10 @@ object RetrofitClient {
 
     val chatGroupsWebService : ChatGroupsWebService by lazy {
         retrofit.create(ChatGroupsWebService::class.java)
+    }
+
+    val chatImagesApi: ChatImagesApi by lazy {
+        retrofit.create(ChatImagesApi::class.java)
     }
 
     val retrofitInstance: Retrofit

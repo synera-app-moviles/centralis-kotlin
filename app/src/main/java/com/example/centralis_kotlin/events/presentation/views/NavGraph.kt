@@ -174,6 +174,7 @@ fun AppNavGraph(navController: NavHostController, modifier: Modifier = Modifier)
                 }
             } else {
                 EventDetailsScreen(
+                    eventId = eventIdStr,
                     title = title,
                     description = description,
                     location = location,
