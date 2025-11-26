@@ -31,6 +31,8 @@ import com.example.centralis_kotlin.announcement.presentation.view.components.Co
 import com.example.centralis_kotlin.announcement.presentation.viewmodels.AnnouncementViewModel
 import com.example.centralis_kotlin.common.navigation.NavigationRoutes
 import com.example.centralis_kotlin.common.SharedPreferencesManager
+import com.example.centralis_kotlin.analytics.service.AnalyticsService
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -48,6 +50,8 @@ fun AnnouncementDetailScreen(
     val context = LocalContext.current
     val sharedPrefsManager = remember { SharedPreferencesManager(context) }
     val currentUserId = sharedPrefsManager.getUserId() ?: ""
+    val analyticsService = remember { AnalyticsService() }
+    val scope = rememberCoroutineScope()
     
     val selected by vm.selectedAnnouncement.collectAsState()
     var commentText by remember { mutableStateOf("") }
@@ -59,6 +63,23 @@ fun AnnouncementDetailScreen(
         isLoading = true
         vm.selectAnnouncement(announcementId)
         isLoading = false
+    }
+
+    // Registrar vista del announcement cuando se cargue exitosamente
+    LaunchedEffect(selected) {
+        selected?.let { announcement ->
+            if (currentUserId.isNotEmpty()) {
+                scope.launch {
+                    val token = sharedPrefsManager.getToken()
+                    val authHeader = if (token?.startsWith("Bearer ") == true) token else "Bearer ${token ?: ""}"
+                    analyticsService.registerAnnouncementView(
+                        authorization = authHeader,
+                        announcementId = announcement.id,
+                        userId = currentUserId
+                    )
+                }
+            }
+        }
     }
 
     Scaffold(

@@ -18,8 +18,12 @@ import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.example.centralis_kotlin.profile.models.ProfileResponse
 import com.example.centralis_kotlin.ui.theme.CentralisPrimary
+import com.example.centralis_kotlin.analytics.service.AnalyticsService
+import com.example.centralis_kotlin.common.SharedPreferencesManager
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 
 private fun formatDateForDisplay(date: String?): String {
     if (date.isNullOrBlank()) return ""
@@ -38,6 +42,7 @@ private fun formatDateForDisplay(date: String?): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventDetailsScreen(
+    eventId: String,
     title: String,
     description: String,
     location: String,
@@ -49,6 +54,27 @@ fun EventDetailsScreen(
     onBack: () -> Unit
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    
+    val context = LocalContext.current
+    val sharedPrefsManager = remember { SharedPreferencesManager(context) }
+    val currentUserId = sharedPrefsManager.getUserId() ?: ""
+    val analyticsService = remember { AnalyticsService() }
+    val scope = rememberCoroutineScope()
+
+    // Registrar vista del evento cuando se cargue la pantalla
+    LaunchedEffect(eventId, currentUserId) {
+        if (currentUserId.isNotEmpty() && eventId.isNotEmpty()) {
+            scope.launch {
+                val token = sharedPrefsManager.getToken()
+                val authHeader = if (token?.startsWith("Bearer ") == true) token else "Bearer ${token ?: ""}"
+                analyticsService.registerEventView(
+                    authorization = authHeader,
+                    eventId = eventId,
+                    userId = currentUserId
+                )
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
