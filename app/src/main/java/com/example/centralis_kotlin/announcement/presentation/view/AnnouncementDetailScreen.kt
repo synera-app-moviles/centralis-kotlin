@@ -61,7 +61,8 @@ fun AnnouncementDetailScreen(
     //  Cargar detalle + comentarios desde backend al entrar
     LaunchedEffect(announcementId) {
         isLoading = true
-        vm.selectAnnouncement(announcementId)
+        val token = sharedPrefsManager.getToken()
+        vm.selectAnnouncement(announcementId, token)
         isLoading = false
     }
 
@@ -219,7 +220,10 @@ fun AnnouncementDetailScreen(
                                 .fillMaxWidth()
                         ) {
                             items(announcement.comments) { comment ->
-                                CommentCard(comment)
+                                CommentCard(
+                                    comment = comment,
+                                    userProfile = vm.getUserProfile(comment.employeeId)
+                                )
                             }
                         }
 
@@ -241,10 +245,12 @@ fun AnnouncementDetailScreen(
 
                             Button(onClick = {
                                 if (commentText.isNotBlank()) {
+                                    val token = sharedPrefsManager.getToken()
                                     vm.addCommentRemote(
                                         announcementId = announcement.id,
                                         content = commentText,
-                                        employeeId = currentUserId // Usar el ID del usuario autenticado
+                                        employeeId = currentUserId, // Usar el ID del usuario autenticado
+                                        token = token
                                     )
                                     commentText = ""
                                 }
