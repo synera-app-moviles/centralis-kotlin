@@ -68,12 +68,20 @@ class AnnouncementViewModel(
     fun selectAnnouncement(id: String, token: String? = null) {
         viewModelScope.launch {
             try {
+                // 1. Cargar el anuncio base
                 val announcement = repository.getAnnouncementById(id)
-                _selectedAnnouncement.value = announcement
                 
-                // Cargar perfiles de todos los usuarios que comentaron
-                if (!token.isNullOrBlank() && announcement != null) {
-                    val uniqueUserIds = announcement.comments.map { it.employeeId }.distinct()
+                // 2. Cargar comentarios explícitamente desde el backend
+                val comments = (repository as? RemoteAnnouncementRepository)
+                    ?.getComments(id) ?: emptyList()
+                
+                // 3. Combinar anuncio con comentarios actualizados
+                val announcementWithComments = announcement?.copy(comments = comments.toMutableList())
+                _selectedAnnouncement.value = announcementWithComments
+                
+                // 4. Cargar perfiles de todos los usuarios que comentaron
+                if (!token.isNullOrBlank() && announcementWithComments != null) {
+                    val uniqueUserIds = announcementWithComments.comments.map { it.employeeId }.distinct()
                     uniqueUserIds.forEach { userId ->
                         ensureProfile(userId, token)
                     }
@@ -104,21 +112,25 @@ class AnnouncementViewModel(
                 // 1. Crear el comentario en backend
                 val newComment = repository.addComment(announcementId, content, employeeId)
 
-                // 2. Cargar perfil del usuario que comentó
-                if (!token.isNullOrBlank()) {
-                    ensureProfile(employeeId, token)
-                }
-
-                // 3. Obtener la lista completa de comentarios actualizada
+                // 2. Recargar TODOS los comentarios del anuncio desde el backend
                 val updatedComments = (repository as? RemoteAnnouncementRepository)
                     ?.getComments(announcementId) ?: emptyList()
 
-                // 4. Actualizar el anuncio en el estado
+                // 3. Actualizar el anuncio en el estado con todos los comentarios
                 val current = _selectedAnnouncement.value
                 if (current != null && current.id == announcementId) {
                     val updated = current.copy(comments = updatedComments.toMutableList())
                     _selectedAnnouncement.value = updated
+                    
+                    // 4. Cargar perfiles de todos los usuarios (incluyendo el nuevo comentarista)
+                    if (!token.isNullOrBlank()) {
+                        val uniqueUserIds = updatedComments.map { it.employeeId }.distinct()
+                        uniqueUserIds.forEach { userId ->
+                            ensureProfile(userId, token)
+                        }
+                    }
                 }
+                
 
                 // 5. Refrescar lista de anuncios
                 loadAnnouncements()
