@@ -130,7 +130,6 @@ class AnnouncementViewModel(
                         }
                     }
                 }
-                
 
                 // 5. Refrescar lista de anuncios
                 loadAnnouncements()
