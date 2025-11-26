@@ -303,6 +303,18 @@ fun ChatDetailView(
                 }
             }
         }
+        
+        // ImagePicker para seleccionar y compartir imágenes (dentro del Column)
+        if (showImagePicker) {
+            ImagePicker(
+                imageType = ImageType.CHAT,
+                currentImageUrl = null,
+                onImageUploaded = { imageUrl ->
+                    showImagePicker = false
+                    vm.shareImage(chatId, imageUrl)
+                }
+            )
+        }
     }
 
     // Diálogo de confirmación para eliminar grupo
@@ -329,18 +341,6 @@ fun ChatDetailView(
                 TextButton(onClick = { showDeleteDialog = false }) {
                     Text("Cancel")
                 }
-            }
-        )
-    }
-
-    // ImagePicker para seleccionar y compartir imágenes
-    if (showImagePicker) {
-        ImagePicker(
-            imageType = ImageType.CHAT,
-            currentImageUrl = null,
-            onImageUploaded = { imageUrl ->
-                showImagePicker = false
-                vm.shareImage(chatId, imageUrl)
             }
         )
     }

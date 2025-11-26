@@ -33,6 +33,11 @@ class IAMViewModel(context: Context) : ViewModel() {
     var isUsersLoading by mutableStateOf(false)
     var usersError: String? by mutableStateOf(null)
     
+    // Estados para usuario individual
+    var currentUser: User? by mutableStateOf(null)
+    var isCurrentUserLoading by mutableStateOf(false)
+    var currentUserError: String? by mutableStateOf(null)
+    
     // Estados para roles
     var rolesList: List<Role> by mutableStateOf(emptyList())
     var isRolesLoading by mutableStateOf(false)
@@ -149,6 +154,35 @@ class IAMViewModel(context: Context) : ViewModel() {
             } finally {
                 withContext(Dispatchers.Main) {
                     isUsersLoading = false
+                }
+            }
+        }
+    }
+    
+    fun getUserById(userId: String) {
+        viewModelScope.launch {
+            isCurrentUserLoading = true
+            currentUserError = null
+            currentUser = null
+            
+            try {
+                val token = "Bearer ${sharedPrefsManager.getToken()}"
+                val response = webService.getUserById(userId, token)
+                
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful) {
+                        currentUser = response.body()
+                    } else {
+                        currentUserError = "Error ${response.code()}: ${response.message()}"
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    currentUserError = "Error de conexión: ${e.message}"
+                }
+            } finally {
+                withContext(Dispatchers.Main) {
+                    isCurrentUserLoading = false
                 }
             }
         }
