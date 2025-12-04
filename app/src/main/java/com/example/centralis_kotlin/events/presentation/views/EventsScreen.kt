@@ -26,6 +26,7 @@ package com.example.centralis_kotlin.events.presentation.views
     import com.example.centralis_kotlin.common.RetrofitClient
     import com.example.centralis_kotlin.common.SharedPreferencesManager
     import com.example.centralis_kotlin.profile.models.Position
+    import com.example.centralis_kotlin.iam.presentation.viewmodels.IAMViewModel
     import kotlinx.coroutines.launch
 
     private fun formatDateSafe(dateObj: Any?): String {
@@ -44,33 +45,31 @@ package com.example.centralis_kotlin.events.presentation.views
    ) {
        val context = LocalContext.current
        val eventViewModel = remember { DependencyFactory.createEventViewModel(context) }
+       val iamViewModel: IAMViewModel = remember { DependencyFactory.createIamViewModel(context) }
 
        val uiState by eventViewModel.uiState.collectAsState()
        val events by eventViewModel.events.collectAsState()
 
        var isManagerLocal: Boolean? by remember { mutableStateOf(null) }
-       val scope = rememberCoroutineScope()
 
        LaunchedEffect(Unit) {
            eventViewModel.loadVisibleEvents()
-           scope.launch {
-               try {
-                   val prefs = SharedPreferencesManager(context)
-                   val token = prefs.getToken()
-                   val authHeader = if (token?.startsWith("Bearer ") == true) token else "Bearer ${token ?: ""}"
-                   val resp = RetrofitClient.profileWebService.getAllProfiles(authHeader)
-                   if (resp.isSuccessful) {
-                       val profiles = resp.body() ?: emptyList()
-                       val userIdStr = prefs.getUserId()
-                       val myProfile = profiles.find { it.userId == userIdStr }
-                       isManagerLocal = myProfile?.position == Position.MANAGER
-                   } else {
-                       isManagerLocal = null
-                   }
-               } catch (_: Exception) {
-                   isManagerLocal = null
+           
+           // Obtener el usuario actual por su ID
+           try {
+               val prefs = SharedPreferencesManager(context)
+               val currentUserId = prefs.getUserId()
+               if (!currentUserId.isNullOrEmpty()) {
+                   iamViewModel.getUserById(currentUserId)
                }
+           } catch (e: Exception) {
+               isManagerLocal = false
            }
+       }
+       
+       // Calcular si es manager cuando cambie currentUser
+       LaunchedEffect(iamViewModel.currentUser) {
+           isManagerLocal = iamViewModel.currentUser?.roles?.contains("ROLE_MANAGER") == true
        }
 
        val effectiveIsManager = isManagerLocal ?: isManager
@@ -135,15 +134,19 @@ package com.example.centralis_kotlin.events.presentation.views
                fontWeight = FontWeight.Bold,
                modifier = Modifier.align(Alignment.Center)
            )
-           IconButton(
-               onClick = onAddEventClick,
-               modifier = Modifier.align(Alignment.CenterEnd)
-           ) {
-               Icon(
-                   imageVector = Icons.Default.Add,
-                   contentDescription = "Add Event",
-                   tint = Color.White
-               )
+           
+           // Solo mostrar el botón de agregar evento si el usuario tiene el rol ROLE_MANAGER
+           if (isManager) {
+               IconButton(
+                   onClick = onAddEventClick,
+                   modifier = Modifier.align(Alignment.CenterEnd)
+               ) {
+                   Icon(
+                       imageVector = Icons.Default.Add,
+                       contentDescription = "Add Event",
+                       tint = Color.White
+                   )
+               }
            }
        }
    }
